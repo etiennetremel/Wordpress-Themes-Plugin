@@ -12,3 +12,11 @@ Usage
 	
 3. Start to develop your own plugin inspired by the "/plugin-bootstrap/plugin-base.php" file.
 
+Available plugins
+-----------------
++ **Banner** _Add Custom Banner Using Bootstrap Transition & Carousel jQuery Script_
++ **Projects** _Add project management_
++ **Section Widget** _Widget add Image, Title, Content and Read More Button_
++ **Team** _Add Staff Management_
++ **Testimonials** _Add customer feedback including comment, date, company name and website_
++ **Theme Settings** _Theme Settings Management_
