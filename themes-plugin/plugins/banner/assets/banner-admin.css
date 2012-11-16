@@ -1,0 +1,36 @@
+#banner .clear {
+  clear: both;
+  height: 10px;
+}
+#banner .sc {
+  background: lightYellow;
+  border: 1px solid #e6db55;
+  -moz-border-radius: 3px;
+  -o-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -ms-border-radius: 3px;
+  border-radius: 3px;
+  padding: 1em;
+  margin: 5px 0 15px;
+  text-align: center;
+}
+#banner .items {
+  cursor: move;
+}
+#banner .items .item {
+  background: #dfdfdf;
+  clear: both;
+  margin: 10px;
+  padding: 10px;
+  display: inline-block;
+}
+#banner .items .item .image {
+  width: 154px;
+  float: left;
+  margin-right: 10px;
+  text-align: center;
+}
+#banner .items .item .metas {
+  width: 300px;
+  float: left;
+}
