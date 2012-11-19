@@ -120,12 +120,15 @@ Author: Etienne Tremel
 
 		if ( $items ): foreach ( $items as $key => $item ) :
 
+			$thumb = wp_get_attachment_image_src( $item['image_id'], 'thumbnail' );
+			$large = wp_get_attachment_image_src( $item['image_id'], 'large' );
+
 			$output .= '<div class="item">
 							<div class="caption">
 								' . $item['caption'] . '
 							</div>
 							<div class="image">
-								<img src="' . wp_get_attachment_thumb_url( $item['image_id'] ) . '" border="0" />
+								<a href="' . $large[0] . '"><img src="' . $thumb[0] . '" border="0" /></a>
 							</div>
 						</div>';
 
