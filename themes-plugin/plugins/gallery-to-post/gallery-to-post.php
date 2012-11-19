@@ -116,7 +116,7 @@ Author: Etienne Tremel
 		//Get meta datas from DB:
 		$items = get_post_meta( $post_id, 'gallery_to_post', true );
 		
-		$output = '<div class="gallery_to_post-' . $post_id . '">';
+		$output = '<div id="gallery_to_post-' . $post_id . '" class="gallery_to_post">';
 
 		if ( $items ): foreach ( $items as $key => $item ) :
 
