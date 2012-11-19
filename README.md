@@ -15,6 +15,7 @@ Usage
 Available plugins
 -----------------
 + **Banner** _Add Custom Banner Using Bootstrap Transition & Carousel jQuery Script_
++ **Gallery to Post** _Add Gallery Management to post_
 + **Projects** _Add project management_
 + **Section Widget** _Widget add Image, Title, Content and Read More Button_
 + **Team** _Add Staff Management_
