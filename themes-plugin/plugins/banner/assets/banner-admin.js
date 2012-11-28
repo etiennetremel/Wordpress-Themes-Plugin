@@ -62,7 +62,7 @@ jQuery(document).ready(function($) {
 			}
 		}
 	 
-		tb_show('', 'media-upload.php?post_id=' + postID + '&amp;type=image&amp;TB_iframe=1');
+		tb_show('', 'media-upload.php?type=image&amp;TB_iframe=1');
 		return false;
 	});	 
  

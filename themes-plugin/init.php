@@ -20,6 +20,8 @@
 	add_action( 'after_setup_theme', 'register_themes_plugin', 1 );
 
 	function register_themes_plugin() {
+		global $notification;
+
 		/* AUTO-ADD LIB FILES */
 		$lib_folder = THEME_PLUGINS_DIRECTORY . '\lib';
 		if ( $dir = opendir( $lib_folder ) ) {
@@ -36,8 +38,11 @@
 		if ( $plugins ) {
 			foreach ( $plugins as $plugin ) {
 				$plugin_url = $theme_custom_folder . '\\' . $plugin;
-				if ( file_exists( $plugin_url ) )
+				if ( file_exists( $plugin_url ) ) {
 					include_once( $plugin_url );
+				} else { 
+		            $notification = 'Plugin <strong>' . $plugin_url . '</strong> does not exist.'; 
+		        } 
 			}
 		}
 	}

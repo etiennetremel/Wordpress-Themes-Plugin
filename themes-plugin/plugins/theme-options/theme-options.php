@@ -50,11 +50,8 @@ Author: Etienne Tremel
                     if( ! in_array( $field_name, $not_included_fields ) )
                         $options[ $field_name ] = $field_value;
                 }
-
                 if( update_option( 'theme_settings', $options ) )
                     $notification = 'Settings saved.';
-                else
-                    $notification = 'Problem when updating the settings.';
             } else {
                 foreach( $_REQUEST as $field_name => $field_value ) {
                     if( ! in_array( $field_name, $not_included_fields ) )
@@ -101,13 +98,13 @@ Author: Etienne Tremel
                 $theme_options_form = new Custom_Form();
 
                 if ( $settings ) {
-                    foreach( $theme_settings as &$field ) {
+                    foreach( $theme_options as &$field ) {
                         if( isset( $settings[ $field['name'] ] ) )
                             $field['default_value'] = $settings[ $field['name'] ];
                     }
                 }
 
-                echo $theme_options_form->get_fields( $theme_settings );
+                echo $theme_options_form->get_fields( $theme_options );
                 ?>
                 <input type="hidden" name="action" value="save" />
                 <?php submit_button(); ?>
@@ -126,7 +123,7 @@ Author: Etienne Tremel
     /* REGISTER SCRIPTS & STYLE */
     add_action( 'admin_init', 'register_theme_settings_scripts' );
     function register_theme_settings_scripts() {
-        wp_register_style( 'theme_settings_style', TP_PLUGIN_DIRECTORY_WWW . '/assets/theme-options.css' );
+        wp_register_style( 'theme_settings_style', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/theme-options.css' );
     }
     
     add_action('admin_enqueue_scripts', 'enqueue_theme_settings_scripts' );

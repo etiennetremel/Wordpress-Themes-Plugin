@@ -1,6 +1,8 @@
 Wordpress-Themes-Plugin
 =======================
 
+_Be aware that this is a Beta version, so you may find some bugs, please report it via GitHub!_
+
 Extend themes functionnality by adding custom plugins inside the theme folder.
 
 Usage

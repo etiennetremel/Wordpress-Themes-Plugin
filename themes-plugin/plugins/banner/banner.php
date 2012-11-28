@@ -116,10 +116,12 @@ Author: Etienne Tremel
 
 		$items = array();
 		foreach ( $images_id as $key => $image_id ) {
-			$items[] = array(
-				'image_id'	=> $image_id,
-				'text'		=> $texts[ $key ]
-			);
+			if ( $image_id ) {
+				$items[] = array(
+					'image_id'	=> $image_id,
+					'text'		=> $texts[ $key ]
+				);
+			}
 		}
 
 		//Insert data in DB:

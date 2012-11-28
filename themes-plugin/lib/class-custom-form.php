@@ -102,6 +102,7 @@ class Custom_Form {
 
     public function get_fields( $fields ) {
         $output = "";
+        if ( ! $fields ) return 'No fields set.';
         foreach( $fields as $field ) {
             $output .= $this->get_field( $field );
         }

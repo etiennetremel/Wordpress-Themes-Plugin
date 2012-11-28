@@ -75,12 +75,19 @@ Author: Etienne Tremel
 		$images_id 	= ( isset( $_REQUEST['images_id'] ) ) ? $_REQUEST['images_id'] : '';
 		$captions 	= ( isset( $_REQUEST['captions'] ) ) ? $_REQUEST['captions'] : '';
 
-		$items = array();
-		foreach ( $images_id as $key => $image_id ) {
-			$items[] = array(
-				'image_id'	=> $image_id,
-				'caption'	=> $captions[ $key ]
-			);
+		if ( $images_id ) {
+			$items = array();
+			foreach ( $images_id as $key => $image_id ) {
+				if ( $image_id ) {
+					$items[] = array(
+						'image_id'	=> $image_id,
+						'caption'	=> $captions[ $key ]
+					);
+				}
+			}
+
+			//Insert data in DB:
+			update_post_meta( $post_id, "gallery_to_post", $items );
 		}
 
 		//Insert data in DB:
