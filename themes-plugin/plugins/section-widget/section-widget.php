@@ -2,7 +2,7 @@
 /*
 Plugin Name: Section Widget
 Version: 0.1
-Description: Widget add Image, Title, Content and Read More Button - Depend of the Widget Image Field Plugin
+Description: Widget add Image, Title, Content and Read More Button
 Author: Etienne Tremel
 */
 
@@ -76,12 +76,12 @@ if ( ! class_exists( 'Section_Widget' ) ) {
 
 			if( ! empty( $more_button_title ) || ! empty( $link ))
 				echo '<a href="' . $link . '" target="' . $link_target . '" title="' . $more_button_title. '"><div class="more">' . $more_button_title . ' <img src="' . get_bloginfo('template_url') . '/images/arrow-right.gif" alt=">" /></div></a>';
-				 
+			
 			echo $after_widget;
 		}
 
 		function form( $instance ) {
-			$instance = wp_parse_args( (array) $instance, array( 'image_id' => '', 'title' => '', 'content' => '', 'more_button_title' => '', 'link' => '', 'link_target' => '' ) );
+			$instance = wp_parse_args( (array) $instance, array( 'image_id' => '', 'title' => '', 'content' => '', 'more_button_title' => '', 'link' => '', 'external_link' => '', 'link_target' => '' ) );
 			
 			$image_id   		= esc_attr( isset( $instance['image_id'] ) ? $instance['image_id'] : 0 );
 			$title 				= strip_tags($instance['title']);

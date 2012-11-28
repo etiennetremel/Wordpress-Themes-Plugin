@@ -1,4 +1,13 @@
 <?php
+	/**
+	 * THEMES PLUGIN
+	 * Version: 0.1 Beta
+	 * Author: Etienne Tremel
+	 * Extend themes functionnality by adding custom plugins inside the theme folder.
+	 * Usage: Check the repository on GitHub: https://github.com/etiennetremel/Wordpress-Themes-Plugin
+	 */
+
+
 	/*
 	 * DEFINE GLOBALS
 	 */
@@ -133,7 +142,8 @@
 									'description' 	=> 'Description',
 									'version' 		=> 'Version',
 									'author' 		=> 'Author',
-									'author_uri' 	=> 'Author URI'
+									'author_uri' 	=> 'Author URI',
+									'shortcode'		=> 'Shortcode'
 								);
 								$file_data = get_file_data( $file, $metas );
 								$file_data['url'] = $entry . '/' . $entry . '.php';
@@ -169,6 +179,9 @@
 								$extra[] = 'Author: <a href="' . $plugin['author_uri'] . '">' . $plugin['author'] . '</a>';
 
 							$description = $plugin['description'] . '<br />' . implode( ' | ', $extra );
+
+							if ( ! empty( $plugin['shortcode'] ) )
+								$description .= '<br />Shortcode: ' . $plugin['shortcode'];
 
 							$active_plugins = get_option( 'themes_active_plugin' );
 							if ( $active_plugins && in_array( $plugin['url'], $active_plugins ) )

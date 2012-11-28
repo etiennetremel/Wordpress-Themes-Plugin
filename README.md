@@ -19,7 +19,11 @@ Available plugins
 + **Banner** _Add Custom Banner Using Bootstrap Transition & Carousel jQuery Script_
 + **Gallery to Post** _Add Gallery Management to post_
 + **Projects** _Add project management_
-+ **Section Widget** _Widget add Image, Title, Content and Read More Button_
 + **Team** _Add Staff Management_
 + **Testimonials** _Add customer feedback including comment, date, company name and website_
 + **Theme Settings** _Theme Settings Management_
+
+Available widgets
+-----------------
++ **Section Widget** _Widget add Image, Title, Content and Read More Button_
++ **Image Widget** _Widget add an image with a link_
