@@ -53,7 +53,10 @@ if ( ! class_exists( 'Section_Widget' ) ) {
 			$content 			= apply_filters( 'widget_text', empty( $instance['content'] ) ? '' : $instance['content'], $instance );
 			$more_button_title 	= $instance['more_button_title'];
 			$link				= $instance['link'];
+			$external_link		= $instance['external_link'];
 			$link_target 		= $instance['link_target'];
+
+			$link = ( empty( $link ) ) ? $external_link : get_permalink( $link );
 
 			echo $before_widget;
 
@@ -85,6 +88,7 @@ if ( ! class_exists( 'Section_Widget' ) ) {
 			$content 			= esc_textarea( isset( $instance['content'] ) ? $instance['content'] : '' );
 			$more_button_title 	= esc_attr( isset( $instance['more_button_title'] ) ? $instance['more_button_title'] : '' );
 			$link 				= esc_attr( isset( $instance['link'] ) ? $instance['link'] : '' );
+			$external_link		= esc_attr( isset( $instance['external_link'] ) ? $instance['external_link'] : '' );
 			$link_target 		= esc_attr( isset( $instance['link_target'] ) ? $instance['link_target'] : '' );
 			?>
 			<div>
@@ -105,7 +109,7 @@ if ( ! class_exists( 'Section_Widget' ) ) {
 			
 			<p>
 				<label for="<?php echo $this->get_field_id('content'); ?>"><?php _e('Content:') ?></label>
-				 <?php wp_editor($content, $this->get_field_id('content'), array( 'textarea_name' => $this->get_field_name('content'), 'textarea_rows' => 25 )) ?>
+				 <?php wp_editor($content, $this->get_field_id('content'), array( 'textarea_name' => $this->get_field_name('content'), 'textarea_rows' => 5 )) ?>
 			</p>
 			<hr />
 
@@ -115,14 +119,32 @@ if ( ! class_exists( 'Section_Widget' ) ) {
 			</p>
 			<p>
 				<label for="<?php echo $this->get_field_id('link'); ?>"><?php _e('Link to:') ?></label>
-				<input type="text" class="widefat" id="<?php echo $this->get_field_id('link'); ?>" name="<?php echo $this->get_field_name('link'); ?>" value="<?php echo $link; ?>" />
+				<select class="widefat" id="<?php echo $this->get_field_id('link'); ?>" name="<?php echo $this->get_field_name('link'); ?>">
+					<option value="">-</option>
+					<?php
+					$args = array(
+						'numberposts'	=> -1,
+						'post_status'	=> 'publish'
+					);
+					$list_pages = get_pages( $args );
+					foreach ( $list_pages as $page ) {
+						$selected = ( $link == $page->ID ) ? 'selected' : '';
+						echo '<option value="' . $page->ID . '" ' . $selected . '>' . $page->post_title . '</option>';
+					}
+					?>
+				</select>
+			</p>
+			OR
+			<p>
+				<label for="<?php echo $this->get_field_id('external_link'); ?>"><?php _e('External link to:') ?></label> <em>(http://...)</em>
+				<input type="text" class="widefat" id="<?php echo $this->get_field_id('external_link'); ?>" name="<?php echo $this->get_field_name('external_link'); ?>" value="<?php echo $external_link; ?>" />
 			</p>
 			<p>
 				<label for="<?php echo $this->get_field_id( 'link_target' ); ?>"><?php _e( 'Target:' ); ?>
 					<select id="<?php echo $this->get_field_id( 'link_target' ); ?>" name="<?php echo $this->get_field_name( 'link_target' ); ?>">
+						<option value="_self" <?php if($link_target=="_self") echo "selected"; ?>>_self</option>
 						<option value="_blank" <?php if($link_target=="_blank") echo "selected"; ?>>_blank</option>
 						<option value="_new" <?php if($link_target=="_new") echo "selected"; ?>>_new</option>
-						<option value="_self" <?php if($link_target=="_self") echo "selected"; ?>>_self</option>
 						<option value="_parent" <?php if($link_target=="_parent") echo "selected"; ?>>_parent</option>
 						<option value="_top" <?php if($link_target=="_top") echo "selected"; ?>>_top</option>
 					</select>
@@ -139,6 +161,7 @@ if ( ! class_exists( 'Section_Widget' ) ) {
 			$instance['link_target'] 		= strip_tags( $new_instance['link_target'] );
 			$instance['more_button_title']	= strip_tags( $new_instance['more_button_title'] );
 			$instance['link'] 				= strip_tags( $new_instance['link'] );
+			$instance['external_link'] 		= strip_tags( $new_instance['external_link'] );
 			return $instance;
 		}
 	}

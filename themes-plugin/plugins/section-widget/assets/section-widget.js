@@ -10,7 +10,7 @@ jQuery(document).ready(function($) {
 				imgID = pat.exec($('img', html).attr('class'));
 			try {
 				button.prev().val(imgID[1]);
-				thumb.html($('img', html).attr('width','100%').removeAttr('height'));
+				thumb.html($('img', html).attr('width','150').removeAttr('height'));
 				tb_remove();
 			} catch(e){
 			}
