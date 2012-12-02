@@ -31,7 +31,6 @@ Author: Etienne Tremel
         if ( ! current_user_can( 'edit_themes' ) )
             wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 
-
         global $notification, $theme_options;
 
         if( isset( $_GET['page'] ) && $_GET['page'] == 'theme-options' ) {
@@ -46,13 +45,20 @@ Author: Etienne Tremel
             );
             
             if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' ) {
+                
+                //Get datas on save, do not include fields we don't want:
                 foreach( $_REQUEST as $field_name => $field_value ) {
                     if( ! in_array( $field_name, $not_included_fields ) )
                         $options[ $field_name ] = $field_value;
                 }
-                if( update_option( 'theme_settings', $options ) )
+
+                //Display notification if success.
+                if( update_option( 'theme_options', $options ) )
                     $notification = 'Settings saved.';
+
             } else {
+
+                 //Get datas, do not include fields we don't want:
                 foreach( $_REQUEST as $field_name => $field_value ) {
                     if( ! in_array( $field_name, $not_included_fields ) )
                         $options[ $field_name ] = $field_value;
@@ -60,7 +66,8 @@ Author: Etienne Tremel
             }
         } else {
             //init plugin: add default option in db if not already available:
-            $options = get_option( 'theme_settings' ) ? get_option( 'theme_settings' ) : array();
+            $options = get_option( 'theme_options' ) ? get_option( 'theme_options' ) : array();
+            
             $values = array();
             foreach( $theme_options as $setting ) {
                 if ( ! in_array( $setting['name'], $options ) )
@@ -68,12 +75,14 @@ Author: Etienne Tremel
                 else
                     $values[ $setting['name'] ] = $options[ $setting['name'] ];
             }
-            update_option( 'theme_settings', $values );
+
+            //Update options in DB:
+            update_option( 'theme_options', $values );
         }
     }
 
-    add_action( 'admin_menu', 'theme_settings_add_menu');
-    function theme_settings_add_menu() {
+    add_action( 'admin_menu', 'theme_options_add_menu');
+    function theme_options_add_menu() {
         add_theme_page( 'Theme Settings', 'Theme Settings', 'edit_themes', 'theme-options', 'theme_options');
     }
 
@@ -85,6 +94,7 @@ Author: Etienne Tremel
             <?php screen_icon(); ?><h2>Theme Settings</h2>
         </div>
         <?php
+        //Display notifications if needed
         if ( isset ( $notification ) ) echo '<div class="info" class="updated fade"><p>' . $notification . '</p></div>';
         ?>
         
@@ -94,13 +104,16 @@ Author: Etienne Tremel
         <div class="options_wrap">
             <form method="post">
                 <?php
+                //Get options from DB
                 $settings = get_option( 'theme_options' );
+               
                 $theme_options_form = new Custom_Form();
 
+                //If data in DB, overwrite default value of fields in the form:
                 if ( $settings ) {
                     foreach( $theme_options as &$field ) {
                         if( isset( $settings[ $field['name'] ] ) )
-                            $field['default_value'] = $settings[ $field['name'] ];
+                            $field['default_value'] = stripslashes( $settings[ $field['name'] ] );
                     }
                 }
 
@@ -115,19 +128,19 @@ Author: Etienne Tremel
 
     /* FUNCTION TO GET THE VALUE FROM THE TEMPLATE */
     function get_theme_options( $name ) {
-        $options = get_option( 'theme_settings' ) ? get_option( 'theme_settings' ) : array();
+        $options = get_option( 'theme_options' ) ? get_option( 'theme_options' ) : array();
         if ( array_key_exists( $name, $options ) )
-            return $options[ $name ];
+            return stripslashes( $options[ $name ] );
     }
 
     /* REGISTER SCRIPTS & STYLE */
-    add_action( 'admin_init', 'register_theme_settings_scripts' );
-    function register_theme_settings_scripts() {
-        wp_register_style( 'theme_settings_style', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/theme-options.css' );
+    add_action( 'admin_init', 'register_theme_options_scripts' );
+    function register_theme_options_scripts() {
+        wp_register_style( 'theme_options_style', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/theme-options.css' );
     }
     
-    add_action('admin_enqueue_scripts', 'enqueue_theme_settings_scripts' );
-    function enqueue_theme_settings_scripts() {
-        wp_enqueue_style( 'theme_settings_style' );
+    add_action('admin_enqueue_scripts', 'enqueue_theme_options_scripts' );
+    function enqueue_theme_options_scripts() {
+        wp_enqueue_style( 'theme_options_style' );
     }
 ?>
