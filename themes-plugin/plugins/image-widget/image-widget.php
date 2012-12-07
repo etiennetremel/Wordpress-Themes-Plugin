@@ -6,21 +6,27 @@ Description: Widget add an image with a link
 Author: Etienne Tremel
 */
 
-add_action('widgets_init', 'image_widget_init');
-function image_widget_init() {
-	register_widget( 'Image_Widget' );
+if ( ! class_exists( 'Image_Widget' ) ) {
+	class Image_Widget {
+		public function __construct() {
+			add_action( 'widgets_init', array( $this, 'image_widget_init' ) );
+		}
+
+		public function image_widget_init() {
+			register_widget( 'Image_Widget_Constructor' );
+		}
+	}
 }
 
-if ( ! class_exists( 'Image_Widget' ) ) {
-
-	class Image_Widget extends WP_Widget {
-		function Image_Widget() {
+if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
+	class Image_Widget_Constructor extends WP_Widget {
+		function Image_Widget_Constructor() {
 			$widget_ops = array(
-				'classname'		=> 'image_widget',
+				'classname'		=> 'image_widget_constructor',
 				'description'   => __( 'Add image and link' )
 			);
 
-			parent::__construct( 'Image_Widget', __( 'Image Widget' ), $widget_ops );
+			parent::__construct( 'Image_Widget_Constructor', __( 'Image Widget' ), $widget_ops );
 
             global $pagenow;
 			if ( 'widgets.php' == $pagenow )

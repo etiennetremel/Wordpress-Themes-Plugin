@@ -23,6 +23,22 @@
 	if ( ! defined( "TP_LIB_DIRECTORY_WWW" ) )
 		define( 'TP_LIB_DIRECTORY_WWW', TP_BASE . '/lib' );
 
+
+	/**
+	 * AUTOLOAD CLASSES
+	 */
+	function __autoload( $name ) {
+		$name = str_replace( '_', '-', strtolower( $name ) );
+		$class_file = THEME_PLUGINS_DIRECTORY . '/lib/class-' . $name . '.php';
+		if ( file_exists( $class_file ) )
+	    	require_once $class_file;
+
+	    $plugin_file = THEME_PLUGINS_DIRECTORY . '/plugins/' . $name . '/' . $name . '.php';
+		if ( file_exists( $plugin_file ) )
+	    	require_once $plugin_file;
+	}
+
+
 	/*
 	 * ACTIVATE THEMES PLUGIN
 	 */
@@ -31,27 +47,11 @@
 	function register_themes_plugin() {
 		global $notification;
 
-		/* AUTO-ADD LIB FILES */
-		$lib_folder = THEME_PLUGINS_DIRECTORY . '\lib';
-		if ( $dir = opendir( $lib_folder ) ) {
-			while ( false !== ( $file = readdir( $dir ) ) ) {
-				if ( $file != "." && $file != ".." && is_file( $lib_folder . '/' . $file ) ) require( $lib_folder . '/' . $file );
-			}
-			closedir($dir);
-		}
-
-		/* FETCH PLUGINS */
-		$theme_custom_folder = THEME_PLUGINS_DIRECTORY. '\plugins';
-
 		$plugins = get_option( 'themes_active_plugin' );
 		if ( $plugins ) {
 			foreach ( $plugins as $plugin ) {
-				$plugin_url = $theme_custom_folder . '\\' . $plugin;
-				if ( file_exists( $plugin_url ) ) {
-					include_once( $plugin_url );
-				} else { 
-		            $notification = 'Plugin <strong>' . $plugin_url . '</strong> does not exist.'; 
-		        } 
+				$plugin = str_replace( ' ', '_', ucwords( $plugin ) );
+				new $plugin();
 			}
 		}
 	}
@@ -85,7 +85,7 @@
 
 	    if ( isset( $_GET['page'] ) && $_GET['page'] == 'themes-plugin-settings' ) {
 			
-			if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' ) {			
+			if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' && isset( $_REQUEST['plugins'] ) ) {			
 				
 				$options = $_REQUEST['plugins'];
 
@@ -97,6 +97,8 @@
 				} else {
 					$notification = 'Problem when updating the settings.';
 				}
+			} else {
+				return;
 			}
 
 		}
@@ -146,7 +148,6 @@
 									'shortcode'		=> 'Shortcode'
 								);
 								$file_data = get_file_data( $file, $metas );
-								$file_data['url'] = $entry . '/' . $entry . '.php';
 
 								$plugins[] = $file_data;
 
@@ -184,13 +185,13 @@
 								$description .= '<br />Shortcode: ' . $plugin['shortcode'];
 
 							$active_plugins = get_option( 'themes_active_plugin' );
-							if ( $active_plugins && in_array( $plugin['url'], $active_plugins ) )
+							if ( $active_plugins && in_array( $plugin['name'], $active_plugins ) )
 								$active = true;
 							else
 								$active = false;
 							
 							echo '<tr>
-									<th valign="top" class="check-column ' . ( $active ? 'active' : 'inactive' ) . '" scope="row"><input type="checkbox" name="plugins[]" value="' . $plugin['url'] . '" ' . ( $active ? 'checked="checked"' : '' ) . ' /></th>
+									<th valign="top" class="check-column ' . ( $active ? 'active' : 'inactive' ) . '" scope="row"><input type="checkbox" name="plugins[]" value="' . $plugin['name'] . '" ' . ( $active ? 'checked="checked"' : '' ) . ' /></th>
 								 	<td valign="top" class="plugin-title ' . ( $active ? 'active' : 'inactive' ) . '"><strong>' . $plugin['name'] . '</strong></td>
 								 	<td class="column-description desc ' . ( $active ? 'active' : 'inactive' ) . '">' . $description . '</td>
 								 </tr>';

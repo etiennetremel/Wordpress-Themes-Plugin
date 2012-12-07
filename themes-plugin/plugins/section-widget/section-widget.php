@@ -6,17 +6,24 @@ Description: Widget add Image, Title, Content and Read More Button
 Author: Etienne Tremel
 */
 
-add_action('widgets_init', 'section_widget_init');
-function section_widget_init() {
-	register_widget( 'Section_Widget' );
+if ( ! class_exists( 'Section_Widget' ) ) {
+	class Section_Widget {
+		public function __construct() {
+			/* INIT WIDGET */
+			add_action( 'widgets_init', array( $this, 'section_widget_init' ) );
+		}
+		function section_widget_init() {
+			register_widget( 'Section_Widget_Constructor' );
+		}
+	}
 }
 
-if ( ! class_exists( 'Section_Widget' ) ) {
+if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 
-	class Section_Widget extends WP_Widget {
-		function Section_Widget() {
+	class Section_Widget_Constructor extends WP_Widget {
+		function Section_Widget_Constructor() {
 			$widget_ops = array(
-				'classname'		=> 'section_widget',
+				'classname'		=> 'section_widget_constructor',
 				'description'   => __( 'Add Image, Title, Content and Read More Button' )
 			);
 
@@ -25,7 +32,7 @@ if ( ! class_exists( 'Section_Widget' ) ) {
 				'height' => 400
 			);
 
-			parent::__construct( 'Section_Widget', __('Section Widget'), $widget_ops, $control_ops );
+			parent::__construct( 'Section_Widget_Constructor', __('Section Widget'), $widget_ops, $control_ops );
 
             global $pagenow;
 			if ( 'widgets.php' == $pagenow )
