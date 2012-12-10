@@ -82,7 +82,9 @@ if ( ! class_exists( 'Banner' ) ) {
 			$items = get_post_meta( $post_id, 'banner', true );
 			?>
 			<div id="banner" data-post-id="<?php echo $post_id; ?>">
-				<input type="hidden" name="banner_info_nonce" value="<?php echo 'banner_info_nonce' . $post_id; ?>" />
+
+				<input type="hidden" name="banner_info_nonce" value="<?php echo wp_create_nonce( 'banner_info_nonce' ); ?>" />
+
 	            <div class="shortcode">
 		            <p>Copy this code and paste it into your post, page or text widget content.</p>
 		            <p class="sc">[banner id="<?php echo $post_id; ?>"]</p>
@@ -119,13 +121,18 @@ if ( ! class_exists( 'Banner' ) ) {
 	        <?php
 		}
 
-		public function save_banner( $post_id ){
+		public function save_banner( $post_id ) {
+			//Define auto-save:
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
-		
-			//Security check, data comming from the right form:
-			if ( ! isset( $_POST['banner_info_nonce'] ) || ! 'banner_info_nonce' . $post_id == $_POST['banner_info_nonce'] )
-				return $post_id;
+
+			//Check permission:
+			if ( ! current_user_can( 'edit_posts' ) ) 
+	        	wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+
+	        //Security check, data comming from the right form:
+	        if ( ! isset( $_REQUEST['banner_info_nonce'] ) || ( isset( $_REQUEST['banner_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['banner_info_nonce'], 'banner_info_nonce' ) ) )
+	        	return $post_id;
 			
 			//Date stored in variable using "if" condition (short method)
 			$images_id 	= ( isset( $_REQUEST['images_id'] ) ) ? $_REQUEST['images_id'] : '';
@@ -145,7 +152,7 @@ if ( ! class_exists( 'Banner' ) ) {
 			update_post_meta( $post_id, "banner", $items );
 		}
 
-		public function banner_edit_columns( $columns ){
+		public function banner_edit_columns( $columns ) {
 			return array(
 				'cb' 		=> '<input type="checkbox" />',
 				'title' 	=> __( 'Banner name' ),
@@ -153,7 +160,7 @@ if ( ! class_exists( 'Banner' ) ) {
 			);
 		}
 
-		public function banner_custom_columns( $col, $post_id ){
+		public function banner_custom_columns( $col, $post_id ) {
 			$items = get_post_meta( $post_id, 'banner', true );
 			
 			switch ( $col ) {

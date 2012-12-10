@@ -118,7 +118,7 @@ if ( ! class_exists( 'Testimonials' ) ) {
 			<style>
 				label { vertical-align: middle; }
 			</style>
-			<input type="hidden" name="testimonials_info_nonce" value="<?php echo 'testimonials_info_nonce' . $post_id; ?>" />
+			<input type="hidden" name="testimonials_info_nonce" value="<?php echo wp_create_nonce( 'testimonials_info_nonce' ); ?>" />
 			<table class="form-table">
 				<tr valign="top"><th scope="row"><label for="date">Date of the review</label></th><td><input type="text" value="<?php echo ( isset( $date ) ) ? $date : ''; ?>" name="date" id="date" /></td></tr>
 				<tr valign="top"><th scope="row"><label for="comment">Comment</label></th><td><textarea name="comment" id="comment" cols="100" rows="5"><?php echo ( isset( $comment ) ) ? $comment : ''; ?></textarea></td></tr>
@@ -129,13 +129,13 @@ if ( ! class_exists( 'Testimonials' ) ) {
 	        <?php
 		}
 
-		public function save_testimonials( $post_id ){
+		public function save_testimonials( $post_id ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
 		
 			//Security check, data comming from the right form:
-			if ( ! isset( $_POST['testimonials_info_nonce'] ) || ! 'testimonials_info_nonce' . $post_id == $_POST['testimonials_info_nonce'] )
-				return $post_id;
+	        if ( ! isset( $_REQUEST['testimonials_info_nonce'] ) || ( isset( $_REQUEST['testimonials_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['testimonials_info_nonce'], 'testimonials_info_nonce' ) ) )
+	        	return $post_id;
 			
 			//Date stored in variable using "if" condition (short method)
 			$date 		= ( isset( $_REQUEST['date'] ) ) ? $_POST['date'] : '';
@@ -157,7 +157,7 @@ if ( ! class_exists( 'Testimonials' ) ) {
 		}
 
 		//Define visible fields:
-		public function testimonials_edit_columns( $columns ){
+		public function testimonials_edit_columns( $columns ) {
 			return array(
 				'cb' 		=> '<input type="checkbox" />',
 				'title' 	=> __( 'Customer name' ),
@@ -167,7 +167,7 @@ if ( ! class_exists( 'Testimonials' ) ) {
 		}
 
 		//Associate datas to fields:
-		public function testimonials_custom_columns( $col, $post_id ){
+		public function testimonials_custom_columns( $col, $post_id ) {
 			$testimonials = extract( get_post_meta( $post_id, 'testimonials', true ) );
 			
 			switch ( $col ) {

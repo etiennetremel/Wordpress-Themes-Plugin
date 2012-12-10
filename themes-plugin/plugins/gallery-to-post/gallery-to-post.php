@@ -38,7 +38,9 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 			$items = get_post_meta( $post_id, 'gallery_to_post', true );
 			?>
 			<div id="gallery_to_post" data-post-id="<?php echo $post_id; ?>">
-				<input type="hidden" name="gallery_to_post_info_nonce" value="<?php echo 'gallery_to_post_info_nonce' . $post_id; ?>" />
+
+				<input type="hidden" name="gallery_to_post_info_nonce" value="<?php echo wp_create_nonce( 'gallery_to_post_info_nonce' ); ?>" />
+
 	            <div class="shortcode">
 		            <p>Copy this code and paste it into where you would like to display the gallery.</p>
 		            <p class="sc">[gallery_to_post post_id="<?php echo $post_id; ?>"]</p>
@@ -80,8 +82,8 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 				return $post_id;
 		
 			//Security check, data comming from the right form:
-			if ( ! isset( $_POST['gallery_to_post_info_nonce'] ) || ! 'gallery_to_post_info_nonce' . $post_id == $_POST['gallery_to_post_info_nonce'] )
-				return $post_id;
+	        if ( ! isset( $_REQUEST['gallery_to_post_info_nonce'] ) || ( isset( $_REQUEST['gallery_to_post_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['gallery_to_post_info_nonce'], 'gallery_to_post_info_nonce' ) ) )
+	        	return $post_id;
 			
 			//Date stored in variable using "if" condition (short method)
 			$images_id 	= ( isset( $_REQUEST['images_id'] ) ) ? $_REQUEST['images_id'] : '';

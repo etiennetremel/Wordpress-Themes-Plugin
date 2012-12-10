@@ -110,7 +110,7 @@ if ( ! class_exists( 'Projects' ) ) {
 			<style>
 				label { vertical-align: middle; }
 			</style>
-			<input type="hidden" name="project_info_nonce" value="<?php echo 'project_info_nonce' . $post_id; ?>" />
+			<input type="hidden" name="project_info_nonce" value="<?php echo wp_create_nonce( 'project_info_nonce' ); ?>" />
 			<table class="form-table">
 				<tr valign="top"><th scope="row"><label for="url">Project URL</label></th><td><input type="text" value="<?php echo ( isset( $url ) ) ? $url : ''; ?>" name="url" id="url" /></td></tr>
 	            <tr valign="top"><th scope="row"><label for="published_date">Project published date</label></th><td><input type="text" value="<?php echo ( isset( $published_date ) ) ? $published_date : ''; ?>" name="published_date" id="published_date" /></td></tr>
@@ -119,13 +119,13 @@ if ( ! class_exists( 'Projects' ) ) {
 	        <?php
 		}
 
-		public function save_project( $post_id ){
+		public function save_project( $post_id ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
-		
+
 			//Security check, data comming from the right form:
-			if ( ! isset( $_POST['project_info_nonce'] ) || ! 'project_info_nonce' . $post_id == $_POST['project_info_nonce'] )
-				return $post_id;
+	        if ( ! isset( $_REQUEST['project_info_nonce'] ) || ( isset( $_REQUEST['project_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['project_info_nonce'], 'project_info_nonce' ) ) )
+	        	return $post_id;
 			
 			//Date stored in variable using "if" condition (short method)
 			$url 				= ( isset( $_REQUEST['url'] ) ) ? $_POST['url'] : '';
@@ -133,15 +133,15 @@ if ( ! class_exists( 'Projects' ) ) {
 
 			//Datas stored as an array:
 			$metas = array(
-				'url' 		=> $url,
+				'url' 				=> $url,
 				'published_date' 	=> $published_date
 			);
 
 			//Insert data in DB:
-			update_post_meta( $post_id, "project", $metas );
+			update_post_meta( $post_id, 'project', $metas );
 		}
 	
-		public function project_edit_columns( $columns ){
+		public function project_edit_columns( $columns ) {
 			return array(
 				'cb' 				=> '<input type="checkbox" />',
 				'title' 			=> __( 'Project name' ),
@@ -151,7 +151,7 @@ if ( ! class_exists( 'Projects' ) ) {
 			);
 		}
 	
-		public function project_custom_columns( $col, $post_id ){
+		public function project_custom_columns( $col, $post_id ) {
 			$metas = extract( get_post_meta( $post_id, 'project', true ) );
 			
 			switch ( $col ) {

@@ -66,11 +66,11 @@ if ( ! class_exists( 'Team' ) ) {
 			return $title;
 		}
 
-		public function staff_meta_box(){
+		public function staff_meta_box() {
 			add_meta_box( 'staff-items', 'Staff Informations', 'staff_metas', 'staff', 'normal', 'low' );
 		}  
 		
-		public function staff_metas( $post ){
+		public function staff_metas( $post ) {
 			global $post;
 			$post_id = $post->ID;
 	        
@@ -83,7 +83,7 @@ if ( ! class_exists( 'Team' ) ) {
 			<style>
 				label { vertical-align: middle; }
 			</style>
-			<input type="hidden" name="staff_info_nonce" value="<?php echo 'staff_info_nonce' . $post_id; ?>" />
+			<input type="hidden" name="staff_info_nonce" value="<?php echo wp_create_nonce( 'staff_info_nonce' ); ?>" />
 			<table class="form-table">
 				<tr valign="top"><th scope="row"><label for="position">Position</label></th><td><input type="text" value="<?php echo ( isset( $position ) ) ? $position : ''; ?>" name="position" id="position" /></td></tr>
 	            <tr valign="top"><th scope="row"><label for="email">Email</label></th><td><input type="text" value="<?php echo ( isset( $email ) ) ? $email : ''; ?>" name="email" id="email" /></td></tr>
@@ -94,10 +94,10 @@ if ( ! class_exists( 'Team' ) ) {
 		public function save_staff( $post_id ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
-		
+
 			//Security check, data comming from the right form:
-			if ( ! isset( $_POST['staff_info_nonce'] ) || ! 'staff_info_nonce' . $post_id == $_POST['staff_info_nonce'] )
-				return $post_id;
+	        if ( ! isset( $_REQUEST['staff_info_nonce'] ) || ( isset( $_REQUEST['staff_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['staff_info_nonce'], 'staff_info_nonce' ) ) )
+	        	return $post_id;
 			
 			//Date stored in variable using "if" condition (short method)
 			$position 	= ( isset( $_REQUEST['position'] ) ) ? $_REQUEST['position'] : '';

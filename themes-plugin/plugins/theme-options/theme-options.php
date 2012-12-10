@@ -56,6 +56,10 @@ if ( ! class_exists( 'Theme_Options' ) ) {
                 
                 if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' ) {
                     
+                    //Security check, data comming from the right form:
+                    if ( ! isset( $_REQUEST['theme_options_info_nonce'] ) || ( isset( $_REQUEST['theme_options_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['theme_options_info_nonce'], 'theme_options_info_nonce' ) ) )
+                        wp_die( __( 'You do not have sufficient permissions' ) );
+
                     //Get datas on save, do not include fields we don't want:
                     foreach( $_REQUEST as $field_name => $field_value ) {
                         if( ! in_array( $field_name, $not_included_fields ) )
@@ -112,6 +116,7 @@ if ( ! class_exists( 'Theme_Options' ) ) {
             </div>
             <div class="options_wrap">
                 <form method="post">
+                    <input type="hidden" name="theme_options_info_nonce" value="<?php echo wp_create_nonce( 'theme_options_info_nonce' ); ?>" />
                     <?php
                     //Get options from DB
                     $settings = get_option( 'theme_options' );
