@@ -157,6 +157,13 @@ class Custom_Form {
                                 $this->get_description( $description ) .
                                 $this->after_field();
                     break;
+                case "file":
+                    $output =   $this->before_field( $name ) .
+                                $this->get_label( $name, $label ) .
+                                '<input type="file" value="' . $default_value . '" name="' . $name . '" id="' . $name . '" ' . $attr . ' />' .
+                                $this->get_description( $description ) .
+                                $this->after_field();
+                    break;
                 case "checkbox":
                     $selected = ( $options['checked'] ) ? 'checked="checked"' : '';
                     $output =   $this->before_field( $name ) .
