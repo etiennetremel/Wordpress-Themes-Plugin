@@ -1,6 +1,6 @@
 <?php
 /* 
-Plugin Name: Theme Options
+Plugin Name: Theme Setting
 Version: 0.1
 Description: Theme Settings Management
 Author: Etienne Tremel
@@ -13,37 +13,43 @@ $theme_options = array(
         'type'          => 'textarea',
         'label'         => __( 'Google Analytics Code' ),
         'name'          => 'ga_code',
+        'description'   => 'Use get_theme_setting("ga_code");',
         'default_value' => ''
     ), array(
         'type'          => 'text',
         'label'         => __( 'Footer Copyright Text' ),
         'name'          => 'footer_copyright',
+        'description'   => 'Use get_theme_setting("footer_copyright");',
         'default_value' => '© ' . date( 'Y' ) . ' Copyright ' . get_bloginfo( 'name' )
     )
 );
 
-if ( ! class_exists( 'Theme_Options' ) ) {
-    class Theme_Options {
+if ( ! class_exists( 'Theme_Setting' ) ) {
+    class Theme_Setting {
+
+        private $name = 'theme_setting';
+        private $name_plurial, $label, $label_plurial;
+
         public function __construct() {
             /* SAVE SETTINGS, ADD IT TO APPEARANCE MENU */
-            add_action( 'admin_init', array( $this, 'theme_options_init' ) );
+            add_action( 'admin_init', array( $this, 'init' ) );
 
             /* ADD MENU TO APPEARANCE TAB */
-            add_action( 'admin_menu', array( $this, 'theme_options_add_menu' ) );
+            add_action( 'admin_menu', array( $this, 'add_menu' ) );
 
             /* REGISTER SCRIPTS & STYLE */
-            add_action( 'admin_init', array( $this, 'register_theme_options_scripts' ) );
-            add_action('admin_enqueue_scripts', array( $this, 'enqueue_theme_options_scripts' ) );
+            add_action( 'admin_init', array( $this, 'register_scripts' ) );
+            add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         }
 
-        public function theme_options_init() {        
-    
+        public function init() {
+
             if ( ! current_user_can( 'edit_themes' ) )
-                wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+                return;
 
             global $notification, $theme_options;
 
-            if( isset( $_GET['page'] ) && $_GET['page'] == 'theme-options' ) {
+            if( isset( $_GET['page'] ) && $_GET['page'] == $this->name ) {
 
                 $options = array();
 
@@ -57,8 +63,8 @@ if ( ! class_exists( 'Theme_Options' ) ) {
                 if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' ) {
                     
                     //Security check, data comming from the right form:
-                    if ( ! isset( $_REQUEST['theme_options_info_nonce'] ) || ( isset( $_REQUEST['theme_options_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['theme_options_info_nonce'], 'theme_options_info_nonce' ) ) )
-                        wp_die( __( 'You do not have sufficient permissions' ) );
+                    if ( ! isset( $_POST[ $this->name . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $this->name . '_nonce' ], plugin_basename( __FILE__ ) ) )
+                        return;
 
                     //Get datas on save, do not include fields we don't want:
                     foreach( $_REQUEST as $field_name => $field_value ) {
@@ -67,36 +73,33 @@ if ( ! class_exists( 'Theme_Options' ) ) {
                     }
 
                     //Display notification if success.
-                    if( update_option( 'theme_options', $options ) )
+                    if( update_option( $this->name, $options ) )
                         $notification = 'Settings saved.';
 
                 } else {
 
                      //Get datas, do not include fields we don't want:
-                    foreach( $_REQUEST as $field_name => $field_value ) {
+                    foreach( $_REQUEST as $field_name => $field_value )
                         if( ! in_array( $field_name, $not_included_fields ) )
                             $options[ $field_name ] = $field_value;
-                    }
                 }
             } else {
                 //init plugin: add default option in db if not already available:
-                $options = get_option( 'theme_options' ) ? get_option( 'theme_options' ) : array();
+                $options = get_option( $this->name );
                 
-                $values = array();
-                foreach( $theme_options as $setting ) {
-                    if ( ! in_array( $setting['name'], $options ) )
+                if( ! $options ) {
+                    $values = array();
+                    foreach( $theme_options as $setting )
                         $values[ $setting['name'] ] = $setting['default_value'];
-                    else
-                        $values[ $setting['name'] ] = $options[ $setting['name'] ];
-                }
 
-                //Update options in DB:
-                update_option( 'theme_options', $values );
+                    //Update options in DB:
+                    update_option( $this->name, $values );
+                }
             }
         }
 
-        public function theme_options_add_menu() {
-            add_theme_page( 'Theme Settings', 'Theme Settings', 'edit_themes', 'theme-options', array( $this, 'theme_options' ) );
+        public function add_menu() {
+            add_theme_page( 'Theme Settings', 'Theme Settings', 'edit_themes', $this->name, array( $this, 'theme_options' ) );
         }
 
         public function theme_options(){
@@ -116,10 +119,11 @@ if ( ! class_exists( 'Theme_Options' ) ) {
             </div>
             <div class="options_wrap">
                 <form method="post">
-                    <input type="hidden" name="theme_options_info_nonce" value="<?php echo wp_create_nonce( 'theme_options_info_nonce' ); ?>" />
+                    <?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
+                    
                     <?php
                     //Get options from DB
-                    $settings = get_option( 'theme_options' );
+                    $settings = get_option( $this->name );
                    
                     $theme_options_form = new Custom_Form();
 
@@ -140,20 +144,22 @@ if ( ! class_exists( 'Theme_Options' ) ) {
             <?php
         }
 
-        public function register_theme_options_scripts() {
-            wp_register_style( 'theme_options_style', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/theme-options.css' );
+        public function register_scripts() {
+            wp_register_style( $this->name . '_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.css' );
         }
         
-        public function enqueue_theme_options_scripts() {
-            wp_enqueue_style( 'theme_options_style' );
+        public function enqueue_scripts() {
+            wp_enqueue_style( $this->name . '_style' );
         }
     }
 }
 
 /* FUNCTION TO GET THE VALUE FROM THE TEMPLATE */
-function get_theme_options( $name ) {
-    $options = get_option( 'theme_options' ) ? get_option( 'theme_options' ) : array();
-    if ( array_key_exists( $name, $options ) )
-        return stripslashes( $options[ $name ] );
+if ( ! function_exists( 'get_theme_setting' ) ) {
+    function get_theme_setting( $name ) {
+        $settings = get_option( 'theme_setting' ) ? get_option( 'theme_setting' ) : array();
+        if ( array_key_exists( $name, $settings ) )
+            return stripslashes( $settings[ $name ] );
+    }
 }
 ?>

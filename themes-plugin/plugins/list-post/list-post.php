@@ -1,44 +1,53 @@
 <?php
 /*
-Plugin Name: List Posts
+Plugin Name: List Post
 Version: 0.1
-Description: Shortcode and Widget to display post via post-type
-Shortcode: [listposts posttype="page" order="ASC"], [listposts parentid="5" orderby="post_date"], [listposts number="5"]
+Description: Shortcode and Widget to display post depending of its type (page, post, ...)
+Shortcode: [list-posts posttype="page" order="ASC"], [list-posts parentid="5" orderby="post_date"], [list-posts number="5"]
 Author: Etienne Tremel
 */
 
-if ( ! class_exists( 'List_Posts' ) ) {
-	class List_Posts {
+/**
+ * LIST POST SHORTCODE
+ */
+if ( ! class_exists( 'List_Post' ) ) {
+	class List_Post {
+
+		private $name = 'list-post';
+		private $name_plurial, $label, $label_plurial;
+
 		public function __construct() {
 			/* INIT */
-			add_action( 'widgets_init', array( $this, 'list_posts_init' ) );
+			add_action( 'widgets_init', array( $this, 'init' ) );
 
 			/* GENERATE SHORT CODE */
-			add_shortcode('listposts', array( $this, 'shortcode_listposts' ) );
+			add_shortcode('list-posts', array( $this, 'shortcode' ) );
 		}
 
-		public function list_posts_init() {
-			register_widget( 'List_Posts_Constructor' );
+		public function init() {
+			register_widget( 'List_Post_Widget' );
 		}
 
-		public function shortcode_listposts( $atts ) {
+		public function shortcode( $atts ) {
 			//Extract attributes and set default value if not set
 			extract( shortcode_atts( array(
 				'number'	=> '-1',
 				'posttype' 	=> 'page',
 				'parentid'	=> '',
-				'orderby'	=> 'post_title',
-				'order'		=> 'DESC'
+				'orderby'	=> 'title',
+				'order'		=> 'ASC',
+				'exclude'	=> ''
 			), $atts ) );
 			
 			$output = '<div id="list_posts-' . $post_id . '" class="list_posts">';
 			$args = array(
-				'numberposts'	=> ( ! isset( $number ) || empty( $number ) ) ? '-1' : $number,
-				'post_type'		=> ( ! isset( $posttype ) || empty( $posttype ) ) ? 'page' : $posttype,
-				'post_parent'	=> ( ! isset( $parentid ) || empty( $parentid ) ) ? '' : $parentid,
+				'numberposts'	=> $number,
+				'post_type'		=> $posttype,
+				'post_parent'	=> $parentid,
 				'post_status'	=> 'publish',
-				'orderby'		=> ( ! isset( $orderby ) || empty( $orderby ) ) ? '' : $orderby,
-				'order'			=> ( ! isset( $order ) || empty( $order ) ) ? '' : $order
+				'orderby'		=> $orderby,
+				'order'			=> $order,
+				'exclude'		=> $exclude
 			);
 
 			$posts = get_posts( $args );
@@ -57,16 +66,20 @@ if ( ! class_exists( 'List_Posts' ) ) {
 	}
 }
 
-if ( ! class_exists( 'List_Posts_Constructor' ) ) {
 
-	class List_Posts_Constructor extends WP_Widget {
-		function List_Posts_Constructor() {
+/**
+ * LIST POST WIDGET
+ */
+if ( ! class_exists( 'List_Post_Widget' ) ) {
+
+	class List_Post_Widget extends WP_Widget {
+		function List_Post_Widget() {
 			$widget_ops = array(
-				'classname'		=> 'list_posts_constructor',
+				'classname'		=> 'list_posts_widget',
 				'description'   => __( 'List posts as list' )
 			);
 
-			parent::__construct( 'List_Posts_Constructor', __( 'List Posts' ), $widget_ops );
+			parent::__construct( 'list-posts-widget', __( 'List Post' ), $widget_ops );
 		}
 
 		function widget( $args, $instance ) {

@@ -51,7 +51,8 @@
 		if ( $plugins ) {
 			foreach ( $plugins as $plugin ) {
 				$plugin = str_replace( ' ', '_', ucwords( $plugin ) );
-				new $plugin();
+				if ( class_exists( $plugin ) )
+					new $plugin();
 			}
 		}
 	}
@@ -208,5 +209,17 @@
         </div>
         
         <?php
+	}
+
+	/* REGISTER STYLE */
+	add_action( 'admin_init', 'themes_plugin_register_style' );
+	add_action( 'admin_enqueue_scripts', 'themes_plugin_enqueue_style' );
+
+	function themes_plugin_register_style() {
+		wp_register_style( 'themes_plugin_admin_style', TP_BASE . '/assets/style.css' );
+	}
+
+	function themes_plugin_enqueue_style() {
+		wp_enqueue_style( 'themes_plugin_admin_style' );
 	}
 ?>

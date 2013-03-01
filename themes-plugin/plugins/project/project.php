@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Projects
+Plugin Name: Project
 Version: 0.1
 Description: Add project management.
 Shortcode: [projects id="11"] | [project post_per_page="6"]
@@ -8,77 +8,87 @@ Widget: Recent Work
 Author: Etienne Tremel
 */
 
-if ( ! class_exists( 'Projects' ) ) {
-	class Projects {
+if ( ! class_exists( 'Project' ) ) {
+	class Project {
+
+		private $name = 'project';
+		private $name_plurial, $label, $label_plurial;
+
 		public function __construct() {
+
+			/* INITIALIZE VARIABLES */
+			$this->name_plurial = $this->name . 's';
+			$this->label = ucwords( preg_replace( '/[_.-]+/', ' ', $this->name ) );
+			$this->label_plurial = ucwords( preg_replace( '/[_.-]+/', ' ', $this->name_plurial ) );
+
 			/* REGISTER CUSTOM POST TYPE & TAXONOMY */
-			add_action( 'init', array( $this, 'project_register' ) );
+			add_action( 'init', array( $this, 'register' ) );
 
 			/* CHANGE DEFAULT CUSTOM TITLE (Change placeholder value when editing/adding a new post) */
-			add_filter( 'enter_title_here', array( $this, 'project_change_title' ) );
+			add_filter( 'enter_title_here', array( $this, 'change_title' ) );
 
 			/* DISPLAY CUSTOM FIELDS */
-			add_action( 'add_meta_boxes', array( $this, 'project_meta_box' ) );
+			add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
 
 			/* ON PAGE UPDATE/PUBLISH, SAVE CUSTOM DATA IN DATABASE */
-			add_action( 'save_post', array( $this, 'save_project' ) );
+			add_action( 'save_post', array( $this, 'save' ) );
 
 			/* CUSTOMISE THE COLUMNS TO SHOW IN ADMIN AREA */
 			//Define visible fields:
-			add_filter( 'manage_edit-project_columns', array( $this, 'project_edit_columns' ) );
+			add_filter( 'manage_edit-' . $this->name . '_columns', array( $this, 'edit_columns' ) );
 
 			//Associate datas to fields:
-			add_action( 'manage_project_posts_custom_column', array( $this, 'project_custom_columns' ), 10, 2 );
+			add_action( 'manage_' . $this->name . '_posts_custom_column', array( $this, 'custom_columns' ), 10, 2 );
 
 			/* GENERATE SHORT CODE */
-			add_shortcode('projects', array( $this, 'shortcode_project' ) );
+			add_shortcode( 'projects', array( $this, 'shortcode' ) );
 
 			/* WIDGET INIT */
-			add_action( 'widgets_init', array( $this, 'projects_widget_init' ) );
+			add_action( 'widgets_init', array( $this, 'widget_init' ) );
 		}
 
-		public function project_register() {
+		public function register() {
 
 			$labels = array(
-				'name'					=> __( 'Projects' ),
-				'singular_name'			=> __( 'Project' ),
-				'add_new_item'			=> __( 'Add New Project' ),
-				'edit_item'				=> __( 'Edit Project' ),
-				'new_item'				=> __( 'New Project' ),
-				'view_item'				=> __( 'View Project' ),
-				'search_items'			=> __( 'Search Projects' ),
-				'not_found'				=> __( 'No projects found' ),
-				'not_found_in_trash'	=> __( 'No projects found in trash' ),
-				'menu_name'				=> __( 'Projects' )
+				'name'					=> __( $this->label_plurial ),
+				'singular_name'			=> __( $this->label ),
+				'add_new_item'			=> __( 'Add New ' . $this->label ),
+				'edit_item'				=> __( 'Edit ' . $this->label ),
+				'new_item'				=> __( 'New ' . $this->label ),
+				'view_item'				=> __( 'View ' . $this->label ),
+				'search_items'			=> __( 'Search ' . $this->label_plurial ),
+				'not_found'				=> __( 'No ' . $this->label_plurial . ' found' ),
+				'not_found_in_trash'	=> __( 'No ' . $this->label_plurial . ' found in trash' ),
+				'menu_name'				=> __( $this->label_plurial )
 			);
 
 			$args = array(
+				'label' 				=> __( $this->label_plurial ),
 				'labels' 				=> $labels,
-				'public' 				=> true,
 				'show_ui' 				=> true,
 				'capability_type' 		=> 'post',
 				'hierarchical' 			=> false,
 				'exclude_from_search' 	=> true,
 				'supports' 				=> array( 'title', 'editor', 'excerpt', 'thumbnail', 'page-attributes' )
 			);
-			register_post_type( 'project' , $args );
+			register_post_type( $this->name, $args );
 
 			// Add new taxonomy TAG type
 			$tags_labels = array(
-				'name' 							=> __( 'Project Tags' ),
-				'singular_name' 				=> __( 'Project Tag' ),
-				'search_items' 					=> __( 'Search Project Tags' ),
-				'popular_items' 				=> __( 'Popular Project Tags' ),
-				'all_items' 					=> __( 'All Project Tags' ),
-				'edit_item' 					=> __( 'Edit Project Tag' ),
-				'update_item' 					=> __( 'Update Project Tag' ),
-				'add_new_item' 					=> __( 'Add New Project Tag' ),
-				'new_item_name' 				=> __( 'New Project Tag Name' ),
-				'separate_items_with_commas' 	=> __( 'Separate Project Tags with commas' ),
-				'add_or_remove_items' 			=> __( 'Add or remove Project Tag' ),
-				'choose_from_most_used' 		=> __( 'Choose from the most used Project Tags' )
+				'name' 							=> __( $this->label . ' Tags'),
+				'singular_name' 				=> __( $this->label . ' Tag' ),
+				'search_items' 					=> __( 'Search ' . $this->label . ' Tags' ),
+				'popular_items' 				=> __( 'Popular ' . $this->label . ' Tags' ),
+				'all_items' 					=> __( 'All ' . $this->label . ' Tags' ),
+				'edit_item' 					=> __( 'Edit ' . $this->label . ' Tag' ),
+				'update_item' 					=> __( 'Update ' . $this->label . ' Tag' ),
+				'add_new_item' 					=> __( 'Add New ' . $this->label . ' Tag' ),
+				'new_item_name' 				=> __( 'New ' . $this->label . ' Tag Name' ),
+				'separate_items_with_commas' 	=> __( 'Separate ' . $this->label . ' Tags with commas' ),
+				'add_or_remove_items' 			=> __( 'Add or remove ' . $this->label . ' Tag' ),
+				'choose_from_most_used' 		=> __( 'Choose from the most used ' . $this->label . ' Tags' )
 			);
-			register_taxonomy( 'project_tag', 'project', array(
+			register_taxonomy( $this->name . '_tag', $this->name, array(
 				'hierarchical' 	=> false,
 				'labels' 		=> $tags_labels,
 				'show_ui' 		=> true,
@@ -87,22 +97,22 @@ if ( ! class_exists( 'Projects' ) ) {
 
 		}
 
-		public function project_change_title( $title ) {
+		public function change_title( $title ) {
 			$screen = get_current_screen();
-			if ( 'project' == $screen->post_type ) $title = 'Enter project name here';
+			if ( $this->name == $screen->post_type ) $title = 'Enter project name here';
 			return $title;
 		}
 
-		public function project_meta_box(){
-			add_meta_box( 'project-extra-informations', 'Extra Informations', array( $this, 'project_meta' ), 'project', 'normal', 'low' );
+		public function meta_box(){
+			add_meta_box( $this->name . '-informations', 'Extra Informations', array( $this, 'meta' ), $this->name, 'normal', 'low' );
 		}  
 	
-		public function project_meta( $post ){
+		public function meta( $post ) {
 			global $post;
 			$post_id = $post->ID;
 	        
 			//Get datas from DB:
-			$metas = get_post_meta( $post_id, 'project', true );
+			$metas = get_post_meta( $post_id, $this->name, true );
 			if( $metas )
 				extract( $metas );
 
@@ -110,7 +120,9 @@ if ( ! class_exists( 'Projects' ) ) {
 			<style>
 				label { vertical-align: middle; }
 			</style>
-			<input type="hidden" name="project_info_nonce" value="<?php echo wp_create_nonce( 'project_info_nonce' ); ?>" />
+
+			<?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
+
 			<table class="form-table">
 				<tr valign="top"><th scope="row"><label for="url">Project URL</label></th><td><input type="text" value="<?php echo ( isset( $url ) ) ? $url : ''; ?>" name="url" id="url" /></td></tr>
 	            <tr valign="top"><th scope="row"><label for="published_date">Project published date</label></th><td><input type="text" value="<?php echo ( isset( $published_date ) ) ? $published_date : ''; ?>" name="published_date" id="published_date" /></td></tr>
@@ -119,13 +131,17 @@ if ( ! class_exists( 'Projects' ) ) {
 	        <?php
 		}
 
-		public function save_project( $post_id ) {
+		public function save( $post_id ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
 
 			//Security check, data comming from the right form:
-	        if ( ! isset( $_REQUEST['project_info_nonce'] ) || ( isset( $_REQUEST['project_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['project_info_nonce'], 'project_info_nonce' ) ) )
-	        	return $post_id;
+	        if ( ! isset( $_POST[ $this->name . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $this->name . '_nonce' ], plugin_basename( __FILE__ ) ) )
+      			return;
+
+      		//Check permission:
+			if ( ! current_user_can( 'edit_posts' ) ) 
+	        	return;
 			
 			//Date stored in variable using "if" condition (short method)
 			$url 				= ( isset( $_REQUEST['url'] ) ) ? $_POST['url'] : '';
@@ -138,21 +154,21 @@ if ( ! class_exists( 'Projects' ) ) {
 			);
 
 			//Insert data in DB:
-			update_post_meta( $post_id, 'project', $metas );
+			update_post_meta( $post_id, $this->name, $metas );
 		}
 	
-		public function project_edit_columns( $columns ) {
+		public function edit_columns( $columns ) {
 			return array(
 				'cb' 				=> '<input type="checkbox" />',
 				'title' 			=> __( 'Project name' ),
 				'url' 				=> __( 'URL' ),
 				'published_date'	=> __( 'Published Date' ),
-				'project_tag' 				=> __( 'Tags' )
+				'project_tag' 		=> __( 'Tags' )
 			);
 		}
 	
-		public function project_custom_columns( $col, $post_id ) {
-			$metas = extract( get_post_meta( $post_id, 'project', true ) );
+		public function custom_columns( $col, $post_id ) {
+			$metas = extract( get_post_meta( $post_id, $this->name, true ) );
 			
 			switch ( $col ) {
 				case 'title':
@@ -165,12 +181,13 @@ if ( ! class_exists( 'Projects' ) ) {
 					echo ( isset( $published_date ) ) ? $published_date : '';
 					break;
 				case 'project_tag':
-					$terms = get_the_terms( $post_id, 'project_tag' );
+					$terms = get_the_terms( $post_id, $this->name . '_tag' );
 					if ( $terms ) {
 						$tags = array();
-						foreach ( $terms as $term ) {
+
+						foreach ( $terms as $term )
 							$tags[] = $term->name;
-						}
+
 						echo implode( ", ", $tags );
 					} else { 
 						echo 'No Tags';
@@ -180,7 +197,7 @@ if ( ! class_exists( 'Projects' ) ) {
 			}
 		}
 	
-		public function shortcode_project( $atts ) {
+		public function shortcode( $atts ) {
 			global $post, $wp_query;
 			$wp_query_temp = $wp_query;
 			
@@ -195,7 +212,7 @@ if ( ! class_exists( 'Projects' ) ) {
 			
 			//Generate Query:
 			$args = array(
-	            'post_type' 		=> 'project',
+	            'post_type' 		=> $this->name,
 	            'post_status' 		=> 'publish',
 				'posts_per_page'	=> $post_per_page,
 				'paged'				=> $paged,
@@ -242,12 +259,12 @@ if ( ! class_exists( 'Projects' ) ) {
 					if ( isset( $published_date ) && ! empty( $published_date ) )
 						$attr[] = $published_date;
 
-					$terms = get_the_terms( $post->ID, 'project_tag' );
+					$terms = get_the_terms( $post->ID, $this->name . '_tag' );
 					$tags = array();
 					if ( $terms ) {
-						foreach ( $terms as $term ) {
+						foreach ( $terms as $term )
 							$tags[] = $term->name;
-						}
+
 						$attr[] = implode( ", ", $tags );
 					}
 
@@ -296,7 +313,7 @@ if ( ! class_exists( 'Projects' ) ) {
 		        endif;
 			else:
 				
-				$ouput .= '<p>' . __( 'Woops! No testimonials availables.' ) . '</p>'; 
+				$ouput .= '<p>' . __( 'Woops! No ' . $this->label . ' availables.' ) . '</p>'; 
 
 			endif;
 
@@ -305,8 +322,8 @@ if ( ! class_exists( 'Projects' ) ) {
 			return $output;
 		}
 
-		public function projects_widget_init() {
-			register_widget( 'projects_widget' );
+		public function widget_init() {
+			register_widget( 'project_widget' );
 		}
 
 		/* FIND DATE IN STRING */
@@ -400,16 +417,16 @@ if ( ! class_exists( 'Projects' ) ) {
 	}
 }
 
-if ( ! class_exists( 'Projects_Widget' ) ) {
+if ( ! class_exists( 'Project_Widget' ) ) {
 
-	class Projects_Widget extends WP_Widget {
-		function Projects_Widget() {
+	class Project_Widget extends WP_Widget {
+		function Project_Widget() {
 			$widget_ops = array(
-				'classname'		=> 'projects_widget',
+				'classname'		=> 'project_widget',
 				'description'   => __( 'Display recent project' )
 			);
 
-			parent::__construct( 'Projects_Widget', __( 'Widget Recent Project' ), $widget_ops );
+			parent::__construct( 'project-widget', __( 'Widget Recent Project' ), $widget_ops );
 		}
 
 		function widget( $args, $instance ) {

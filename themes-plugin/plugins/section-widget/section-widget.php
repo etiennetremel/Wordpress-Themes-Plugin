@@ -32,11 +32,12 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 				'height' => 400
 			);
 
-			parent::__construct( 'Section_Widget_Constructor', __('Section Widget'), $widget_ops, $control_ops );
+			parent::__construct( 'section-widget', __('Section Widget'), $widget_ops, $control_ops );
 
             global $pagenow;
 			if ( 'widgets.php' == $pagenow )
 				add_action('admin_print_scripts', array(&$this, "enqueue_assets"));
+
 		}
 
 		function enqueue_assets() {
@@ -67,6 +68,9 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 
 			echo $before_widget;
 
+			if ( ! empty( $title ) )
+				echo $before_title . '<a href="' . $link . '" target="' . $link_target . '">' . $title . '</a>' . $after_title;
+
 			if( ! empty( $image_id ) ) {
 				$image = wp_get_attachment_image_src( $image_id, 'original' );
 				?>
@@ -76,13 +80,10 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 				<?php
 			}
 
-			if ( ! empty( $title ) )
-				echo $before_title . '<a href="' . $link . '" target="' . $link_target . '">' . $title . '</a>' . $after_title;
-
 			echo '<div class="content">' . ( ! empty( $instance['filter'] ) ? wpautop( $content ) : $content ) . '</div>';
 
 			if( ! empty( $more_button_title ) || ! empty( $link ))
-				echo '<a href="' . $link . '" target="' . $link_target . '" title="' . $more_button_title. '"><div class="more">' . $more_button_title . ' <img src="' . get_bloginfo('template_url') . '/images/arrow-right.gif" alt=">" /></div></a>';
+				echo '<div class="footer"><a href="' . $link . '" target="' . $link_target . '" title="' . $more_button_title. '"><div class="more">' . $more_button_title . '</div></a></div>';
 			
 			echo $after_widget;
 		}
@@ -92,7 +93,7 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 			
 			$image_id   		= esc_attr( isset( $instance['image_id'] ) ? $instance['image_id'] : 0 );
 			$title 				= strip_tags($instance['title']);
-			$content 			= esc_textarea( isset( $instance['content'] ) ? $instance['content'] : '' );
+			$content 			= esc_html( isset( $instance['content'] ) ? $instance['content'] : '' );
 			$more_button_title 	= esc_attr( isset( $instance['more_button_title'] ) ? $instance['more_button_title'] : '' );
 			$link 				= esc_attr( isset( $instance['link'] ) ? $instance['link'] : '' );
 			$external_link		= esc_attr( isset( $instance['external_link'] ) ? $instance['external_link'] : '' );
@@ -116,8 +117,36 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 			
 			<p>
 				<label for="<?php echo $this->get_field_id('content'); ?>"><?php _e('Content:') ?></label>
-				 <?php wp_editor($content, $this->get_field_id('content'), array( 'textarea_name' => $this->get_field_name('content'), 'textarea_rows' => 5 )) ?>
+				 <?php wp_editor( stripslashes( $content ), $this->get_field_id('content'), array( 
+				 		'textarea_name' => $this->get_field_name('content'), 
+				 		'textarea_rows' => 5,
+				 		'media_buttons'	=> false,
+				 		'tinymce' => array(
+				          'theme_advanced_buttons1' => 'bold,italic,underline' ,
+				          'theme_advanced_buttons2'	=> ''
+				    	),
+				    	'quicktags' => false,
+				 		'wpautop' => true ) ); ?>
 			</p>
+
+			<script>
+			jQuery(document).ready(function($) {
+				$(document.body).bind('click.widgets-toggle', function(e) {
+					var target = $(e.target);
+					if ( target.hasClass('widget-control-save') ) {
+						e.preventDefault();
+						tinyMCE.triggerSave();
+						return true;
+					}
+				});
+			});
+
+			try {
+				tinyMCE.init( tinyMCEPreInit.mceInit['<?php echo $this->get_field_id('content'); ?>'] );
+				tinyMCE.init( tinyMCEPreInit.qtInit['<?php echo $this->get_field_id('content'); ?>'] );
+			} catch(e) {};
+			
+			</script>
 			<hr />
 
 			<p>
@@ -164,7 +193,12 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 			$instance = $old_instance;
 			$instance['image_id'] 			= intval( strip_tags( $new_instance['image_id'] ) );
 			$instance['title'] 				= strip_tags( $new_instance['title'] );
-			$instance['content'] 			= strip_tags( $new_instance['content'] );
+			
+			if ( current_user_can( 'unfiltered_html' ) )
+				$instance['content'] 		= $new_instance['content'];
+			else
+				$instance['content'] 		= strip_tags( $new_instance['content'] );
+
 			$instance['link_target'] 		= strip_tags( $new_instance['link_target'] );
 			$instance['more_button_title']	= strip_tags( $new_instance['more_button_title'] );
 			$instance['link'] 				= strip_tags( $new_instance['link'] );

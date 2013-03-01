@@ -9,45 +9,50 @@ Author: Etienne Tremel
 
 if ( ! class_exists( 'Team' ) ) {
 	class Team {
+
+		private $name = 'team';
+		private $name_plurial, $label, $label_plurial;
+
 		public function __construct() {
 			/* REGISTER CUSTOM POST TYPE */
-			add_action( 'init', array( $this, 'staff_register' ) );
+			add_action( 'init', array( $this, 'register' ) );
 
 			/* CHANGE DEFAULT CUSTOM TITLE (Change placeholder value when editing/adding a new post) */
-			add_filter( 'enter_title_here', array( $this, 'staff_change_title' ) );
+			add_filter( 'enter_title_here', array( $this, 'change_title' ) );
 
 			/* DISPLAY CUSTOM FIELDS */
-			add_action( 'add_meta_boxes', array( $this, 'staff_meta_box' ) );
+			add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
 
 			/* ON PAGE UPDATE/PUBLISH, SAVE CUSTOM DATA IN DATABASE */
 			add_action( 'save_post', array( $this, 'save_staff' ) );
 
 			/* CUSTOMISE THE COLUMNS TO SHOW IN ADMIN AREA */
 			//Define visible fields:
-			add_filter( 'manage_edit-staff_columns', array( $this, 'staff_edit_columns' ) );
+			add_filter( 'manage_edit-staff_columns', array( $this, 'edit_columns' ) );
 
 			//Associate datas to fields:
-			add_action( 'manage_staff_posts_custom_column',  array( $this, 'staff_custom_columns' ), 10, 2 );
+			add_action( 'manage_staff_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 );
 
 			/* GENERATE SHORT CODE */
-			add_shortcode('team', array( $this, 'shortcode_staff' ) );
+			add_shortcode('team', array( $this, 'shortcode' ) );
 		}
 
 		public function staff_register() {
 			$labels = array(
-				'name'					=> __( 'Staff' ),
-				'singular_name'			=> __( 'Staff' ),
-				'add_new_item'			=> __( 'Add New Staff' ),
-				'edit_item'				=> __( 'Edit Staff' ),
-				'new_item'				=> __( 'New Staff' ),
-				'view_item'				=> __( 'View Staff' ),
-				'search_items'			=> __( 'Search Staff' ),
-				'not_found'				=> __( 'No Staff found' ),
-				'not_found_in_trash'	=> __( 'No Staff found in trash' ),
-				'menu_name'				=> __( 'Team' )
+				'name'					=> __( $this->label_plurial ),
+				'singular_name'			=> __( $this->label ),
+				'add_new_item'			=> __( 'Add New ' . $this->label ),
+				'edit_item'				=> __( 'Edit ' . $this->label ),
+				'new_item'				=> __( 'New ' . $this->label ),
+				'view_item'				=> __( 'View ' . $this->label ),
+				'search_items'			=> __( 'Search ' . $this->label_plurial ),
+				'not_found'				=> __( 'No ' . $this->label_plurial . ' found' ),
+				'not_found_in_trash'	=> __( 'No ' . $this->label_plurial . ' found in trash' ),
+				'menu_name'				=> __( $this->label_plurial )
 			);
 
 			$args = array(
+				'label' 				=> __( $this->label_plurial ),
 				'labels' 				=> $labels,
 				'public' 				=> true,
 				'show_ui' 				=> true,
@@ -57,25 +62,25 @@ if ( ! class_exists( 'Team' ) ) {
 				'supports' 				=> array( 'title', 'editor', 'thumbnail', 'page-attributes' )
 			   );  
 		
-			register_post_type( 'staff' , $args );
+			register_post_type( $this->name, $args );
 		}
 
-		public function staff_change_title( $title ) {
+		public function change_title( $title ) {
 			$screen = get_current_screen();
-			if ( 'staff' == $screen->post_type ) $title = 'Enter staff name here';
+			if ( $this->name == $screen->post_type ) $title = 'Enter staff name here';
 			return $title;
 		}
 
-		public function staff_meta_box() {
-			add_meta_box( 'staff-items', 'Staff Informations', 'staff_metas', 'staff', 'normal', 'low' );
+		public function meta_box() {
+			add_meta_box( $this->name . '-items', $this->label . ' Informations', array( $this, 'meta' ), $this->name, 'normal', 'low' );
 		}  
 		
-		public function staff_metas( $post ) {
+		public function meta( $post ) {
 			global $post;
 			$post_id = $post->ID;
 	        
 			//Get datas from DB:
-			$metas = get_post_meta( $post_id, 'staff', true );
+			$metas = get_post_meta( $post_id, $this->name, true );
 			if( $metas )
 				extract( $metas );
 
@@ -83,7 +88,7 @@ if ( ! class_exists( 'Team' ) ) {
 			<style>
 				label { vertical-align: middle; }
 			</style>
-			<input type="hidden" name="staff_info_nonce" value="<?php echo wp_create_nonce( 'staff_info_nonce' ); ?>" />
+			<?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
 			<table class="form-table">
 				<tr valign="top"><th scope="row"><label for="position">Position</label></th><td><input type="text" value="<?php echo ( isset( $position ) ) ? $position : ''; ?>" name="position" id="position" /></td></tr>
 	            <tr valign="top"><th scope="row"><label for="email">Email</label></th><td><input type="text" value="<?php echo ( isset( $email ) ) ? $email : ''; ?>" name="email" id="email" /></td></tr>
@@ -91,13 +96,17 @@ if ( ! class_exists( 'Team' ) ) {
 	        <?php
 		}
 
-		public function save_staff( $post_id ) {
+		public function save( $post_id ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
 
 			//Security check, data comming from the right form:
-	        if ( ! isset( $_REQUEST['staff_info_nonce'] ) || ( isset( $_REQUEST['staff_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['staff_info_nonce'], 'staff_info_nonce' ) ) )
-	        	return $post_id;
+	        if ( ! isset( $_POST[ $this->name . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $this->name . '_nonce' ], plugin_basename( __FILE__ ) ) )
+      			return;
+
+      		//Check permission:
+			if ( ! current_user_can( 'edit_posts' ) ) 
+	        	return;
 			
 			//Date stored in variable using "if" condition (short method)
 			$position 	= ( isset( $_REQUEST['position'] ) ) ? $_REQUEST['position'] : '';
@@ -109,10 +118,10 @@ if ( ! class_exists( 'Team' ) ) {
 			);
 
 			//Insert data in DB:
-			update_post_meta( $post_id, "staff", $metas );
+			update_post_meta( $post_id, $this->name, $metas );
 		}
 
-		public function staff_edit_columns( $columns ) {
+		public function edit_columns( $columns ) {
 			return array(
 				'cb' 		=> '<input type="checkbox" />',
 				'title' 	=> __( 'Name' ),
@@ -120,8 +129,8 @@ if ( ! class_exists( 'Team' ) ) {
 			);
 		}
 
-		public function staff_custom_columns( $col, $post_id ) {
-			$metas = get_post_meta( $post_id, 'staff', true );
+		public function custom_columns( $col, $post_id ) {
+			$metas = get_post_meta( $post_id, $this->name, true );
 
 			if ( $metas )
 				$metas = extract( $metas );
@@ -136,7 +145,7 @@ if ( ! class_exists( 'Team' ) ) {
 			}
 		}
 
-		public function shortcode_staff( $atts ) {
+		public function shortcode( $atts ) {
 			global $post;
 			
 			//Extract attributes and set default value if not set
@@ -148,7 +157,7 @@ if ( ! class_exists( 'Team' ) ) {
 			
 			//Generate Query:
 			$args = array(
-	            'post_type' 		=> 'staff',
+	            'post_type' 		=> $this->name,
 	            'page_id'			=> $staff_id,
 	            'post_status' 		=> 'publish',
 				'posts_per_page'	=> $staff_per_page,
@@ -162,7 +171,7 @@ if ( ! class_exists( 'Team' ) ) {
 	        	while ( $query->have_posts() ): $query->the_post();
 			
 					//Get meta datas from DB:
-					$metas = extract( get_post_meta( $post->ID, 'staff', true ) );
+					$metas = extract( get_post_meta( $post->ID, $this->label, true ) );
 
 					$name 		= '<p class="name">' . get_the_title() . '</p>';
 					$position 	= ( isset( $position ) ) 	? '<p class="position">' . $position . '</p>' : '';
@@ -184,7 +193,7 @@ if ( ! class_exists( 'Team' ) ) {
 				$output .= '</div>';
 			else:
 				
-				$ouput .= '<p>' . __( 'Woops! No staff found.' ) . '</p>'; 
+				$ouput .= '<p>' . __( 'Woops! No ' . $this->label . ' found.' ) . '</p>'; 
 
 			endif;
 

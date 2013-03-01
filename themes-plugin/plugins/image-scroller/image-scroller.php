@@ -1,20 +1,19 @@
 <?php
 /*
-Plugin Name: Banner
+Plugin Name: Image Scroller
 Version: 0.1
-Description: Add Custom Banner Using Bootstrap Transition & Carousel jQuery Script
-Shortcode: [banner id="45"] | [banner controls="false"] | [banner indicators="false"]
+Description: Add a horizontal image scroller
+shortcode: [image-scroller id="2"]
 Author: Etienne Tremel
 */
 
-if ( ! class_exists( 'Banner' ) ) {
-	class Banner {
+if ( ! class_exists( 'Image_Scroller' ) ) {
+	class Image_Scroller {
 
-		private $name = 'banner';
+		private $name = 'image-scroller';
 		private $name_plurial, $label, $label_plurial;
 
 		public function __construct() {
-
 			/* INITIALIZE VARIABLES */
 			$this->name_plurial = $this->name . 's';
 			$this->label = ucwords( preg_replace( '/[_.-]+/', ' ', $this->name ) );
@@ -34,9 +33,9 @@ if ( ! class_exists( 'Banner' ) ) {
 
 			/* CUSTOMISE THE COLUMNS TO SHOW IN ADMIN AREA */
 			//Define visible fields:
-			add_filter( 'manage_edit-banner_columns', array( $this, 'edit_columns' ) );  
+			add_filter( 'manage_edit-' . $this->name . '_columns', array( $this, 'edit_columns' ) );  
 			//Associate datas to fields:
-			add_action( 'manage_banner_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 ); 
+			add_action( 'manage_' . $this->name . '_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 ); 
 
 			/* REGISTER SCRIPTS & STYLE */
 			add_action( 'admin_init', array( $this, 'register_admin_scripts' ) );
@@ -44,7 +43,7 @@ if ( ! class_exists( 'Banner' ) ) {
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 
 			/* GENERATE SHORT CODE */
-			add_shortcode( 'banner', array( $this, 'shortcode' ) );
+			add_shortcode( $this->name, array( $this, 'shortcode' ) );
 		}
 
 		public function register() {
@@ -65,7 +64,6 @@ if ( ! class_exists( 'Banner' ) ) {
 				'label' 				=> __( $this->label_plurial ),
 				'labels' 				=> $labels,
 				'public' 				=> true,
-				'publicly_queryable'	=> false,
 				'show_ui' 				=> true,
 				'capability_type' 		=> 'post',
 				'hierarchical' 			=> false,
@@ -73,64 +71,45 @@ if ( ! class_exists( 'Banner' ) ) {
 				'supports' 				=> array( 'title' )
 			   );  
 		
-			register_post_type( $this->name, $args );
+			register_post_type( $this->name , $args );
 		}
 
 		public function change_title( $title ) {
 			$screen = get_current_screen();
-			if ( $this->name == $screen->post_type ) $title = 'Enter banner name here';
+			if ( $this->name == $screen->post_type ) $title = 'Enter title here';
 			return $title;
 		}
 
 		public function meta_box() {
-			add_meta_box( $this->name . '-options', $this->label_plurial, array( $this, 'meta' ), $this->name, 'normal', 'low' );
-		}
+			add_meta_box( $this->name . '-items', $this->label_plurial . ' Items', array( $this, 'metas' ), $this->name, 'normal', 'low' );
+		}  
 	
-		public function meta( $post ) {
+		public function metas( $post ) {
 			global $post;
 			$post_id = $post->ID;
 	        
 			//Get datas from DB:
 			$items = get_post_meta( $post_id, $this->name, true );
-
 			?>
-			<div id="banner" data-post-id="<?php echo $post_id; ?>">
+			<div id="<?php echo $this->name; ?>" data-post-id="<?php echo $post_id; ?>">
 
 				<?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
-				
+
 	            <div class="shortcode">
 		            <p>Copy this code and paste it into your post, page or text widget content.</p>
-		            <p class="sc">[banner id="<?php echo $post_id; ?>"]</p>
-		            <p>
-		            	<strong><em>Attributes availables:</em></strong>
-		            	<ul>
-		            		<li>controls: true or false - Display controls</li>
-		            		<li>indicators: true or false - Display indicators</li>
-		            	</ul>
-		            </p>
+		            <p class="sc">[<?php echo $this->name; ?> id="<?php echo $post_id; ?>"]</p>
 	            </div>
 
 				<div class="items">
-					<?php if ( $items ): foreach ( $items as $index => $item ): ?>
+					<?php if ( $items ): foreach ( $items as $key => $item ): ?>
 					<div class="item">
 		            	<div class="image">
 		                    <div class="thumb"><?php echo wp_get_attachment_image( $item['image_id'] ); ?></div>
-		                    <div class="field"><p><label>Image <?php echo $index+1; ?></label></p><p><input type="hidden" name="images_id[]" value="<?php echo $item['image_id']; ?>" /> <button class="browse-image button button-highlighted" type="button">Browse</button> <button class="delete-image button button-highlighted" type="button">Delete</button></p></div>
+		                    <div class="field"><p><label>Image <?php echo $key+1; ?></label></p><p><input type="hidden" name="images_id[]" value="<?php echo $item['image_id']; ?>" /> <button class="browse-image button button-highlighted" type="button">Browse</button> <button class="delete-image button button-highlighted" type="button">Delete</button></p></div>
 		                </div>
 		                <div class="metas">
-		                    <p><label for="text">Text:</label></p>
-		                    <p>
-		                    <?php wp_editor( stripslashes( $item['text'] ), 'text_' . $i, array( 
-						 		'textarea_name' => 'text[]', 
-						 		'textarea_rows' => 5,
-						 		'media_buttons'	=> true,
-						 		'tinymce' => array(
-						          'theme_advanced_buttons1' => 'bold,italic,underline,formatselect' ,
-						          'theme_advanced_buttons2'	=> ''
-						    	),
-						    	'quicktags' => false,
-						 		'wpautop' => true ) ); ?>
-						 	</p>
+		                    <p><label for="link_to">Link To:</label></p>
+		                    <p><input type="text" name="link_to[]" id="link_to" value="<?php echo ( isset( $item['link_to'] ) ) ? $item['link_to'] : ''; ?>" /></p>
 		                </div>
 					</div>
 					<?php endforeach; else : ?>
@@ -140,8 +119,8 @@ if ( ! class_exists( 'Banner' ) ) {
 		                    <div class="field"><p><label>Image 1</label></p><p><input type="hidden" name="images_id[]" value="" /> <button class="browse-image button button-highlighted" type="button">Browse</button> <button class="delete-image button button-highlighted" type="button">Delete</button></p></div>
 		                </div>
 		                <div class="metas">
-		                    <p><label for="text">Text:</label></p>
-		                    <p><textarea name="texts[]" id="text" cols="50" rows="5"></textarea></p>
+		                    <p><label for="link_to">Link To:</label></p>
+		                    <p><input type="text" name="link_to[]" id="link_to" value="" /></p>
 		                </div>
 					</div>
 					<?php endif; ?>
@@ -157,24 +136,24 @@ if ( ! class_exists( 'Banner' ) ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
 
+			//Check permission:
+			if ( ! current_user_can( 'edit_posts' ) ) 
+	        	return;
+
 	        //Security check, data comming from the right form:
 	        if ( ! isset( $_POST[ $this->name . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $this->name . '_nonce' ], plugin_basename( __FILE__ ) ) )
       			return;
-
-      		//Check permission:
-			if ( ! current_user_can( 'edit_posts' ) ) 
-	        	return;
 			
 			//Date stored in variable using "if" condition (short method)
 			$images_id 	= ( isset( $_REQUEST['images_id'] ) ) ? $_REQUEST['images_id'] : '';
-			$texts 		= ( isset( $_REQUEST['text'] ) ) ? $_REQUEST['text'] : '';
+			$link_to 	= ( isset( $_REQUEST['link_to'] ) ) ? $_REQUEST['link_to'] : '';
 
 			$items = array();
-			foreach ( $images_id as $index => $image_id ) {
+			foreach ( $images_id as $key => $image_id ) {
 				if ( $image_id ) {
 					$items[] = array(
 						'image_id'	=> $image_id,
-						'text'		=> $texts[ $index ]
+						'link_to'	=> $link_to[ $key ]
 					);
 				}
 			}
@@ -186,7 +165,7 @@ if ( ! class_exists( 'Banner' ) ) {
 		public function edit_columns( $columns ) {
 			return array(
 				'cb' 		=> '<input type="checkbox" />',
-				'title' 	=> __( 'Banner name' ),
+				'title' 	=> __( $this->label ),
 				'items' 	=> __( 'Items' )
 			);
 		}
@@ -205,8 +184,8 @@ if ( ! class_exists( 'Banner' ) ) {
 		}
 
 		public function register_admin_scripts() {
-			wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.js',  array('media-upload', 'thickbox', 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
-			wp_register_style( $this->name . '_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.css' );
+			wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.js',  array('media-upload', 'thickbox', 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
+			wp_register_style( $this->name . '_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.css' );
 		}
 	
 		public function enqueue_admin_scripts() {
@@ -216,8 +195,8 @@ if ( ! class_exists( 'Banner' ) ) {
 		}
 
 		public function enqueue_frontend_scripts() {
-		    wp_register_script( $this->name . '_frontend_script', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/frontend.js',  array( 'jquery' ));
-			wp_register_style( $this->name . '_frontend_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/frontend.css' );
+		    wp_register_script( $this->name . '_frontend_script', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/frontend.js',  array( 'jquery' ));
+			wp_register_style( $this->name . '_frontend_style', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/frontend.css' );
 
 		    wp_enqueue_script( $this->name . '_frontend_script' );
 		    wp_enqueue_style( $this->name . '_frontend_style' );
@@ -229,8 +208,7 @@ if ( ! class_exists( 'Banner' ) ) {
 			//Extract attributes and set default value if not set
 			extract( shortcode_atts( array(
 				'id' 			=> '',
-				'controls' 		=> true, 	//Display controls
-				'indicators' 	=> true 	//Display indicators
+				'navigation' 	=> true //Display navigation or not
 			), $atts ) );
 			
 			//Generate Query:
@@ -242,58 +220,38 @@ if ( ! class_exists( 'Banner' ) ) {
 				'order' 			=> 'ASC'
 	        );
 	        $query = new WP_Query( $args );
+
+	        $output = '';
 			
-			if ( $query->have_posts() ) : while ($query->have_posts()): $query->the_post();
+        	while ($query->have_posts()):
+				$query->the_post();
 
-				$carousel_id = 'carousel_' . $post->ID;
-
+				$output .= '<div id="hscroll_' . $post->ID . '" class="hscroll slide">';
+				if ( $post->post_title ) $output .= '<h2>' . $post->post_title . '</h2>';
+				$output .= '	<div class="hscroll-inner">';
+		
 				//Get meta datas from DB:
 				$items = get_post_meta( $post->ID, $this->name, true );
 
-				if ( $items ):
+				$link_to = ( $items['link_to'] ) ? $items['link_to'] : '#';
 
-					$carousel_indicators = $slides = "";
+				if ( $items ): foreach ( $items as $key => $item ) :
+					$image = wp_get_attachment_image_src( $item['image_id'], 'thumbnail' );
+					$output .= '<div class="item">';
 
-					foreach ( $items as $index => $item ) :
-
-						$active =  ( $index ) ? '' : 'active' ;
-
-						$carousel_indicators .= '<li data-target="#' . $carousel_id . '" data-slide-to="' . $index . '" class="' . $active . '"></li>';
-
-						$slides .= '<div class="item ' . $active . '">
-										<img src="' . wp_get_attachment_url( $item['image_id'] ) . '" alt="" />
-										<div class="carousel-caption">
-											' . $item['text'] . '
-										</div>
-									</div>';
-
-					endforeach; 
-
-					$carousel_controls = '<a class="carousel-control left" href="#' . $carousel_id . '" data-slide="prev">&lsaquo;</a>
-										<a class="carousel-control right" href="#' . $carousel_id . '" data-slide="next">&rsaquo;</a>';
-
-					$output .= '<div id="' . $carousel_id . '" class="carousel slide">';
-
-					//Display indicators
-					if ( $indicators && sizeof( $items ) > 1 )
-						$output .= '<ol class="carousel-indicators">' . $carousel_indicators . '</ol>';
-
-
-					$output .= '<div class="carousel-inner">' . $slides . '</div>';
-
-					//Display controls
-					if ( $controls && sizeof( $items ) > 1 )
-						$output .= $carousel_controls;
+					$output .= ( $items['link_to'] ) ? '<a href="' . $items['link_to'] . '" target="_blank">' : '';
+					$output .= '<img src="' . $image[0] . '" border="0" />';
+					$output .= ( $items['link_to'] ) ? '</a>' : '';
 					
 					$output .= '</div>';
 
-				endif;
-						
-			endwhile; else:
-				
-				$ouput .= '<p>' . __( 'Woops! No ' . $this->label . ' items available.' ) . '</p>'; 
+				endforeach; endif;
 
-			endif;
+			$output .= '	</div>
+							<!--<a class="control left" href="#hscroll_' . $post->ID . '" data-slide="prev">&lsaquo;</a>
+								<a class="control right" href="#hscroll_' . $post->ID . '" data-slide="next">&rsaquo;</a>-->
+						</div>';
+			endwhile;
 
 			wp_reset_query();
 			

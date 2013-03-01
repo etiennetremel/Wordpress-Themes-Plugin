@@ -1,0 +1,33 @@
+@baseLineHeight:        20px;
+@grayDarker:            #222;
+@grayDark:              #333;
+@white:                 #fff;
+
+
+.transition(@transition) {
+  -webkit-transition: @transition;
+     -moz-transition: @transition;
+       -o-transition: @transition;
+          transition: @transition;
+}
+.border-radius(@radius) {
+  -webkit-border-radius: @radius;
+     -moz-border-radius: @radius;
+          border-radius: @radius;
+}
+.opacity(@opacity) {
+  opacity: @opacity / 100;
+  filter: ~"alpha(opacity=@{opacity})";
+}
+
+@import "carousel.less";
+
+.carousel {
+	margin-bottom: 0;
+	.item img {
+		max-width: 100%;
+	}
+	.carousel-control {
+		text-decoration: none;
+	}
+}

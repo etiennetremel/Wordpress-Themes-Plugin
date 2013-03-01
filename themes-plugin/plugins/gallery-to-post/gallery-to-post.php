@@ -9,37 +9,46 @@ Author: Etienne Tremel
 
 if ( ! class_exists( 'Gallery_To_Post' ) ) {
 	class Gallery_To_Post {
+
+		private $name = 'gallery_to_post';
+		private $name_plurial, $label, $label_plurial;
+
 		public function __construct() {
+
+			/* INITIALIZE VARIABLES */
+			$this->name_plurial = $this->name . 's';
+			$this->label = ucwords( preg_replace( '/[_.-]+/', ' ', $this->name ) );
+			$this->label_plurial = ucwords( preg_replace( '/[_.-]+/', ' ', $this->name_plurial ) );
+
 			/* DISPLAY CUSTOM FIELDS */
-			add_action( 'add_meta_boxes', array( $this, 'gallery_to_post_meta_box' ) );
+			add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
 
 			/* ON PAGE UPDATE/PUBLISH, SAVE CUSTOM DATA IN DATABASE */
-			add_action( 'save_post', array( $this, 'save_gallery_to_post' ) );
+			add_action( 'save_post', array( $this, 'save' ) );
 
 			/* REGISTER SCRIPTS & STYLE */
-			add_action( 'admin_init', array( $this, 'register_gallery_to_post_admin_scripts' ) );
-			add_action('admin_enqueue_scripts', array( $this, 'enqueue_gallery_to_post_admin_scripts' ) );
+			add_action( 'admin_init', array( $this, 'register_admin_scripts' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
 			/* GENERATE SHORT CODE */
-			add_shortcode('gallery_to_post', array( $this, 'shortcode_gallery_to_post' ) );
+			add_shortcode('gallery_to_post', array( $this, 'shortcode' ) );
 		}
 
-		public function gallery_to_post_meta_box(){
-			add_meta_box( 'gallery_to_post-items', 'Gallery Items', array( $this, 'gallery_to_post_metas'), 'page', 'normal', 'low' );
-			add_meta_box( 'gallery_to_post-items', 'Gallery Items', array( $this, 'gallery_to_post_metas'), 'post', 'normal', 'low' );
+		public function meta_box(){
+			add_meta_box( $this->name . '-items', 'Gallery Items', array( $this, 'meta' ), array( 'post', 'page' ), 'normal', 'low' );
 		}  
 	
-		public function gallery_to_post_metas( $post ) {
+		public function meta( $post ) {
 			global $post;
 
 			$post_id = $post->ID;
 	        
 			//Get datas from DB:
-			$items = get_post_meta( $post_id, 'gallery_to_post', true );
+			$items = get_post_meta( $post_id, $this->name, true );
 			?>
 			<div id="gallery_to_post" data-post-id="<?php echo $post_id; ?>">
 
-				<input type="hidden" name="gallery_to_post_info_nonce" value="<?php echo wp_create_nonce( 'gallery_to_post_info_nonce' ); ?>" />
+				<?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
 
 	            <div class="shortcode">
 		            <p>Copy this code and paste it into where you would like to display the gallery.</p>
@@ -47,11 +56,11 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 	            </div>
 
 				<div class="items">
-					<?php if ( $items ): foreach ( $items as $key => $item ): ?>
+					<?php if ( $items ): foreach ( $items as $index => $item ): ?>
 					<div class="item">
 		            	<div class="image">
 		                    <div class="thumb"><?php echo wp_get_attachment_image( $item['image_id'] ); ?></div>
-		                    <div class="field"><p><label>Image <?php echo $key+1; ?></label></p><p><input type="hidden" name="images_id[]" value="<?php echo $item['image_id']; ?>" /> <button class="browse-image button button-highlighted" type="button">Browse</button> <button class="delete-image button button-highlighted" type="button">Delete</button></p></div>
+		                    <div class="field"><p><label>Image <?php echo $index+1; ?></label></p><p><input type="hidden" name="images_id[]" value="<?php echo $item['image_id']; ?>" /> <button class="browse-image button button-highlighted" type="button">Browse</button> <button class="delete-image button button-highlighted" type="button">Delete</button></p></div>
 		                </div>
 		                <div class="metas">
 		                    <p><label>Caption:</label></p>
@@ -77,13 +86,19 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 	        <?php
 		}
 
-		public function save_gallery_to_post( $post_id ){
+		public function save( $post_id ) {
+
+			//Define auto-save:
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
-		
-			//Security check, data comming from the right form:
-	        if ( ! isset( $_REQUEST['gallery_to_post_info_nonce'] ) || ( isset( $_REQUEST['gallery_to_post_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['gallery_to_post_info_nonce'], 'gallery_to_post_info_nonce' ) ) )
-	        	return $post_id;
+
+	        //Security check, data comming from the right form:
+	        if ( ! isset( $_POST[ $this->name . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $this->name . '_nonce' ], plugin_basename( __FILE__ ) ) )
+      			return;
+
+      		//Check permission:
+			if ( ! current_user_can( 'edit_posts' ) ) 
+	        	return;
 			
 			//Date stored in variable using "if" condition (short method)
 			$images_id 	= ( isset( $_REQUEST['images_id'] ) ) ? $_REQUEST['images_id'] : '';
@@ -91,35 +106,32 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 
 			if ( $images_id ) {
 				$items = array();
-				foreach ( $images_id as $key => $image_id ) {
+				foreach ( $images_id as $index => $image_id ) {
 					if ( $image_id ) {
 						$items[] = array(
 							'image_id'	=> $image_id,
-							'caption'	=> $captions[ $key ]
+							'caption'	=> $captions[ $index ]
 						);
 					}
 				}
-
-				//Insert data in DB:
-				update_post_meta( $post_id, "gallery_to_post", $items );
 			}
 
 			//Insert data in DB:
-			update_post_meta( $post_id, "gallery_to_post", $items );
+			update_post_meta( $post_id, $this->name, $items );
 		}
 	
-		public function register_gallery_to_post_admin_scripts() {
-			wp_register_script( 'gallery_to_post_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/gallery-to-post/assets/gallery-to-post-admin.js',  array('media-upload', 'thickbox', 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
-			wp_register_style( 'gallery_to_post_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/gallery-to-post/assets/gallery-to-post-admin.css' );
+		public function register_admin_scripts() {
+			wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.js',  array('media-upload', 'thickbox', 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
+			wp_register_style( $this->name . '_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.css' );
 		}
 	
-		public function enqueue_gallery_to_post_admin_scripts() {
-			wp_enqueue_script( 'gallery_to_post_admin_script' );
-			wp_enqueue_style( 'gallery_to_post_admin_style' );
+		public function enqueue_admin_scripts() {
+			wp_enqueue_script( $this->name . '_admin_script' );
+			wp_enqueue_style( $this->name . '_admin_style' );
 			wp_enqueue_style( 'thickbox' );
 		}
 
-		public function shortcode_gallery_to_post( $atts ) {
+		public function shortcode( $atts ) {
 			global $post;
 
 			//Extract attributes and set default value if not set
@@ -128,7 +140,7 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 			), $atts ) );
 
 			//Get meta datas from DB:
-			$items = get_post_meta( $post_id, 'gallery_to_post', true );
+			$items = get_post_meta( $post_id, $this->name, true );
 			
 			$output = '<div id="gallery_to_post-' . $post_id . '" class="gallery_to_post">';
 
@@ -142,7 +154,7 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 									' . $item['caption'] . '
 								</div>
 								<div class="image">
-									<a href="' . $large[0] . '"><img src="' . $thumb[0] . '" border="0" /></a>
+									<a href="' . $large[0] . '" class="colorbox"><img src="' . $thumb[0] . '" border="0" /></a>
 								</div>
 							</div>';
 

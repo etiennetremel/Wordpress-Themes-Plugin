@@ -1,25 +1,36 @@
 <?php
 /* 
-Plugin Name: Testimonials
+Plugin Name: Testimonial
 Version: 0.1
 Description: Add customer feedback including comment, date, company name and website.
+Shortcode: [testimonial] [testimonial from='0%' to='33%'] [testimonial from='33%' to='100%']
 Author: Etienne Tremel
 */
 
-if ( ! class_exists( 'Testimonials' ) ) {
-	class Testimonials {
+if ( ! class_exists( 'Testimonial' ) ) {
+	class Testimonial {
+
+		private $name = 'testimonial';
+		private $name_plurial, $label, $label_plurial;
+
 		public function __construct() {
+			
+			/* INITIALIZE VARIABLES */
+			$this->name_plurial = $this->name . 's';
+			$this->label = ucwords( preg_replace( '/[_.-]+/', ' ', $this->name ) );
+			$this->label_plurial = ucwords( preg_replace( '/[_.-]+/', ' ', $this->name_plurial ) );
+
 			/* REGISTER CUSTOM POST TYPE */
-			add_action( 'init', array( $this, 'testimonials_register' ) );
+			add_action( 'init', array( $this, 'register' ) );
 
 			/* CHANGE DEFAULT CUSTOM TITLE (Change placeholder value when editing/adding a new post) */
-			add_filter( 'enter_title_here', array( $this, 'testimonials_change_title' ) );
+			add_filter( 'enter_title_here', array( $this, 'change_title' ) );
 
 			/* DISPLAY CUSTOM FIELDS */
-			add_action( 'add_meta_boxes', array( $this, 'testimonials_meta_box' ) );
+			add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
 
 			/* ON PAGE UPDATE/PUBLISH, SAVE CUSTOM DATA IN DATABASE */
-			add_action( 'save_post', array( $this, 'save_testimonials' ) );
+			add_action( 'save_post', array( $this, 'save' ) );
 
 
 			/* CUSTOMISE THE COLUMNS TO SHOW IN ADMIN AREA */
@@ -35,47 +46,45 @@ if ( ! class_exists( 'Testimonials' ) ) {
 			*/
 
 			/* DEFINE VISIBLE FIELDS */
-			add_filter( 'manage_edit-testimonials_columns', array( $this, 'testimonials_edit_columns' ) );
+			add_filter( 'manage_edit-' . $this->name . '_columns', array( $this, 'edit_columns' ) );
 
 			/* ASSOCIATE DATAS TO FIELDS */
-			add_action( 'manage_testimonials_posts_custom_column',  array( $this, 'testimonials_custom_columns' ), 10, 2 ); 
+			add_action( 'manage_' . $this->name_plurial . '_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 ); 
 
 
 			/* GENERATE SHORT CODE */
 			/*
-				In the post content shortcode to insert: [testimonials from='0%' to='50%']
+				In the post content shortcode to insert: [testimonial from='0%' to='50%']
 				Percentages used here to manage columns such as :
-					- Column 1 : [testimonials from='0%' to='33%']
-					- Column 2 : [testimonials from='33%' to='66%']
-					- Column 3 : [testimonials from='66%' to='100%']
+					- Column 1 : [testimonial from='0%' to='33%']
+					- Column 2 : [testimonial from='33%' to='66%']
+					- Column 3 : [testimonial from='66%' to='100%']
 			*/
-			add_shortcode('testimonials', array( $this, 'shortcode_testimonials' ) );
+			add_shortcode( $this->name, array( $this, 'shortcode' ) );
 		}
 
-		public function testimonials_register() {
+		public function register() {
 
 			/*
 			Double underscore used for translation
 			http://codex.wordpress.org/Translating_WordPress#Localization_Technology
 			*/
-
 			$labels = array(
-				'name'					=> __( 'Testimonials' ),
-				'singular_name'			=> __( 'Testimonial' ),
-				'add_new_item'			=> __( 'Add New Testimonial' ),
-				'edit_item'				=> __( 'Edit Testimonial' ),
-				'new_item'				=> __( 'New Testimonial' ),
-				'view_item'				=> __( 'View Testimonial' ),
-				'search_items'			=> __( 'Search Testimonials' ),
-				'not_found'				=> __( 'No testimonials found' ),
-				'not_found_in_trash'	=> __( 'No testimonials found in trash' ),
-				'menu_name'				=> __( 'Testimonials' )
+				'name'					=> __( $this->label_plurial ),
+				'singular_name'			=> __( $this->label ),
+				'add_new_item'			=> __( 'Add New ' . $this->label ),
+				'edit_item'				=> __( 'Edit ' . $this->label ),
+				'new_item'				=> __( 'New ' . $this->label ),
+				'view_item'				=> __( 'View ' . $this->label ),
+				'search_items'			=> __( 'Search ' . $this->label_plurial ),
+				'not_found'				=> __( 'No ' . $this->label_plurial . ' found' ),
+				'not_found_in_trash'	=> __( 'No ' . $this->label_plurial . ' found in trash' ),
+				'menu_name'				=> __( $this->label_plurial )
 			);
 
 			$args = array(
-				'label' 				=> __( 'Testimonials' ),
+				'label' 				=> __( $this->label_plurial ),
 				'labels' 				=> $labels,
-				'public' 				=> true,
 				'show_ui' 				=> true,
 				'capability_type' 		=> 'post',
 				'hierarchical' 			=> false,
@@ -83,20 +92,20 @@ if ( ! class_exists( 'Testimonials' ) ) {
 				'supports' 				=> array( 'title' )
 			   );  
 		
-			register_post_type( 'testimonials' , $args );
+			register_post_type( $this->name , $args );
 		}
 
-		public function testimonials_change_title( $title ) {
+		public function change_title( $title ) {
 			$screen = get_current_screen();
-			if ( 'testimonials' == $screen->post_type ) $title = 'Enter customer name here';
+			if ( $this->name == $screen->post_type ) $title = 'Enter customer name here';
 			return $title;
 		}
 
-		public function testimonials_meta_box(){
-			add_meta_box( 'testimonials-options', 'Testimonials', 'testimonials_meta', 'testimonials', 'normal', 'low' );
+		public function meta_box() {
+			add_meta_box( $this->name . '-options', $this->label_plurial, array( $this, 'meta' ), $this->name, 'normal', 'low' );
 		}
 
-		public function testimonials_meta( $post ){
+		public function meta( $post ) {
 			global $post;
 			$post_id = $post->ID;
 	        
@@ -104,13 +113,13 @@ if ( ! class_exists( 'Testimonials' ) ) {
 			/*
 				Extract function: set array key as variable name and associate values
 				Example:
-					$testimonials 		= get_post_meta($post_id, 'testimonials', true);
-					$date 				= $testimonials['date'];
+					$datas 		= get_post_meta($post_id, $this->name, true);
+					$date 		= $datas['date'];
 
 				is equivalent to 
-					extract( get_post_meta($post_id, 'testimonials', true) );
+					extract( get_post_meta($post_id, $this->name, true) );
 			*/
-			$metas = get_post_meta( $post_id, 'testimonials', true );
+			$metas = get_post_meta( $post_id, $this->name, true );
 			if( $metas )
 				extract( $metas );
 
@@ -118,7 +127,7 @@ if ( ! class_exists( 'Testimonials' ) ) {
 			<style>
 				label { vertical-align: middle; }
 			</style>
-			<input type="hidden" name="testimonials_info_nonce" value="<?php echo wp_create_nonce( 'testimonials_info_nonce' ); ?>" />
+			<?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
 			<table class="form-table">
 				<tr valign="top"><th scope="row"><label for="date">Date of the review</label></th><td><input type="text" value="<?php echo ( isset( $date ) ) ? $date : ''; ?>" name="date" id="date" /></td></tr>
 				<tr valign="top"><th scope="row"><label for="comment">Comment</label></th><td><textarea name="comment" id="comment" cols="100" rows="5"><?php echo ( isset( $comment ) ) ? $comment : ''; ?></textarea></td></tr>
@@ -129,13 +138,19 @@ if ( ! class_exists( 'Testimonials' ) ) {
 	        <?php
 		}
 
-		public function save_testimonials( $post_id ) {
+		public function save( $post_id ) {
+
+			//Define auto-save:
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return $post_id;
-		
-			//Security check, data comming from the right form:
-	        if ( ! isset( $_REQUEST['testimonials_info_nonce'] ) || ( isset( $_REQUEST['testimonials_info_nonce'] ) && ! wp_verify_nonce( $_REQUEST['testimonials_info_nonce'], 'testimonials_info_nonce' ) ) )
-	        	return $post_id;
+
+	        //Security check, data comming from the right form:
+	        if ( ! isset( $_POST[ $this->name . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $this->name . '_nonce' ], plugin_basename( __FILE__ ) ) )
+      			return;
+
+      		//Check permission:
+			if ( ! current_user_can( 'edit_posts' ) ) 
+	        	return;
 			
 			//Date stored in variable using "if" condition (short method)
 			$date 		= ( isset( $_REQUEST['date'] ) ) ? $_POST['date'] : '';
@@ -145,7 +160,7 @@ if ( ! class_exists( 'Testimonials' ) ) {
 			
 
 			//Datas stored as an array:
-			$testimonials = array(
+			$metas = array(
 				'date' 		=> $date,
 				'comment' 	=> $comment,
 				'company' 	=> $company,
@@ -153,11 +168,11 @@ if ( ! class_exists( 'Testimonials' ) ) {
 			);
 
 			//Insert data in DB:
-			update_post_meta( $post_id, "testimonials", $testimonials );
+			update_post_meta( $post_id, $this->name, $metas );
 		}
 
 		//Define visible fields:
-		public function testimonials_edit_columns( $columns ) {
+		public function edit_columns( $columns ) {
 			return array(
 				'cb' 		=> '<input type="checkbox" />',
 				'title' 	=> __( 'Customer name' ),
@@ -167,15 +182,15 @@ if ( ! class_exists( 'Testimonials' ) ) {
 		}
 
 		//Associate datas to fields:
-		public function testimonials_custom_columns( $col, $post_id ) {
-			$testimonials = extract( get_post_meta( $post_id, 'testimonials', true ) );
+		public function custom_columns( $col, $post_id ) {
+			$metas = extract( get_post_meta( $post_id, $this->name, true ) );
 			
 			switch ( $col ) {
 				case 'title':
 					the_title();
 					break;
 				case 'comment':
-					echo ( isset( $testimonials ) ) ? $testimonials : '';
+					echo ( isset( $metas ) ) ? $metas : '';
 					break;
 				case 'company':
 					echo ( isset( $company ) ) ? $company : '';
@@ -183,7 +198,7 @@ if ( ! class_exists( 'Testimonials' ) ) {
 			}
 		}
 
-		public function shortcode_testimonials( $atts ) {
+		public function shortcode( $atts ) {
 			global $post;
 			
 			//Extract attributes and set default value if not set
@@ -193,28 +208,28 @@ if ( ! class_exists( 'Testimonials' ) ) {
 			), $atts ) );
 			
 			//Get number of testimonials available:
-			$total_testimonials = wp_count_posts( 'testimonials' );
+			$total_posts = wp_count_posts( $this->name );
 			
 			//Generate Query:
 			$args = array(
-	            'post_type' 		=> 'testimonials',
+	            'post_type' 		=> $this->name,
 	            'post_status' 		=> 'publish',
-				'offset' 			=> ( strpos( $from, '%' ) ) ? intval ($total_testimonials->publish*str_replace( '%', '', $from ) / 100 ) : $from,
-				'posts_per_page'	=> ( strpos( $to, '%' ) ) ? intval( $total_testimonials->publish*str_replace( '%', '', $to ) / 100 ) : $to,
+				'offset' 			=> ( strpos( $from, '%' ) ) ? intval( $total_posts->publish * str_replace( '%', '', $from ) / 100 ) : $from,
+				'posts_per_page'	=> ( strpos( $to, '%' ) ) ? intval( $total_posts->publish * str_replace( '%', '', $to ) / 100 ) : $to,
 				'order' 			=> 'ASC',
 				'orderby' 			=> 'date'
 	        );
 	        $query = new WP_Query( $args );
 			
 
-			$output = '<div class="testimonials">';
+			$output = '<div class="' . $this->name_plurial . '">';
 					
 			if ( $query->have_posts() ) :
 	        	while ($query->have_posts()):
 					$query->the_post();
 			
 					//Get meta datas from DB:
-					$testimonials = extract( get_post_meta( $post->ID, 'testimonials', true ) );    
+					extract( get_post_meta( $post->ID, $this->name, true ) );    
 					
 					//Generate Output:
 					$title 		= ( ! empty( $title ) ) 	? '&mdash; <span class="name"> ' . get_the_title() . '</span>' : '';
@@ -222,7 +237,7 @@ if ( ! class_exists( 'Testimonials' ) ) {
 					$company 	= ( ! empty( $company ) ) 	? ', <span class="company"> ' . $company . '</span>' : '';
 					$website 	= ( ! empty( $website ) ) 	? ' - <span class="website"> ' . $website . '</span>' : '';
 
-					$output .= '<div class="testimonial">
+					$output .= '<div class="' . $this->name . '">
 									<div class="comment">' . $comment . '</div>
 										' . $comment . '
 										' . $date . '
@@ -233,7 +248,7 @@ if ( ! class_exists( 'Testimonials' ) ) {
 				endwhile;
 			else:
 				
-				$ouput .= '<p>' . __( 'Woops! No testimonials availables.' ) . '</p>'; 
+				$ouput .= '<p>' . __( 'Woops! No ' . $this->label . ' availables.' ) . '</p>'; 
 
 			endif;
 			

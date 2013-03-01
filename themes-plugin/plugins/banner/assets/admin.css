@@ -34,3 +34,6 @@
   width: 300px;
   float: left;
 }
+#banner .wp-editor-container {
+  background: white;
+}

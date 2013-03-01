@@ -9,6 +9,7 @@ Author: Etienne Tremel
 if ( ! class_exists( 'Image_Widget' ) ) {
 	class Image_Widget {
 		public function __construct() {
+			/* INIT WIDGET */
 			add_action( 'widgets_init', array( $this, 'image_widget_init' ) );
 		}
 
@@ -26,7 +27,7 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 				'description'   => __( 'Add image and link' )
 			);
 
-			parent::__construct( 'Image_Widget_Constructor', __( 'Image Widget' ), $widget_ops );
+			parent::__construct( 'image-widget', __( 'Image Widget' ), $widget_ops );
 
             global $pagenow;
 			if ( 'widgets.php' == $pagenow )
@@ -50,6 +51,7 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 			extract( $args );
 
 			$image_id     		= $instance['image_id'];
+			$title				= $instance['title'];
 			$link				= $instance['link'];
 			$external_link		= $instance['external_link'];
 			$link_target 		= $instance['link_target'];
@@ -58,14 +60,17 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 
 			echo $before_widget;
 
-			if( ! empty( $image_id ) ) {
+			if( ! empty( $image_id ) ):
 				$image = wp_get_attachment_image_src( $image_id, 'original' );
 				?>
 				<div class="image">
 					<a href="<?php echo $link; ?>" target="<?php echo $link_target; ?>"><img src="<?php echo $image[0]; ?>" alt="<?php echo $title; ?>" border="0" /></a>
 				</div>
+				<?php if ( ! empty( $title ) ) : ?>
+				<div class="title"><span><?php echo $title; ?></span></div>
+				<?php endif; ?>
 				<?php
-			}
+			endif;
 				 
 			echo $after_widget;
 		}
@@ -74,6 +79,7 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 			$instance = wp_parse_args( (array) $instance, array( 'image_id' => '', 'link' => '', 'external_link' => '', 'link_target' => '' ) );
 			
 			$image_id   		= esc_attr( isset( $instance['image_id'] ) ? $instance['image_id'] : 0 );
+			$title 				= esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' );
 			$link 				= esc_attr( isset( $instance['link'] ) ? $instance['link'] : '' );
 			$external_link		= esc_attr( isset( $instance['external_link'] ) ? $instance['external_link'] : '' );
 			$link_target 		= esc_attr( isset( $instance['link_target'] ) ? $instance['link_target'] : '' );
@@ -87,6 +93,10 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 				<button class="browse-image button button-highlighted">Choose an image</button>
 			</div>
 			<hr />
+			<p>
+				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ) ?></label> <em>(not visible if empty)</em>
+				<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo $title; ?>" />
+			</p>
 
 			<p>
 				<label for="<?php echo $this->get_field_id( 'link' ); ?>"><?php _e( 'Link to:' ) ?></label>
@@ -127,6 +137,7 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 		function update( $new_instance, $old_instance ) {
 			$instance = $old_instance;
 			$instance['image_id'] 			= intval( strip_tags( $new_instance['image_id'] ) );
+			$instance['title'] 				= strip_tags( $new_instance['title'] );
 			$instance['link'] 				= strip_tags( $new_instance['link'] );
 			$instance['external_link'] 		= strip_tags( $new_instance['external_link'] );
 			$instance['link_target'] 		= strip_tags( $new_instance['link_target'] );

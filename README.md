@@ -17,12 +17,14 @@ Usage
 Available plugins
 -----------------
 + **Banner** _Add Custom Banner Using Bootstrap Transition & Carousel jQuery Script_
++ **Image Scroller** _Add a horizontal image scroller_
 + **Gallery to Post** _Add Gallery Management to post_
 + **Projects** _Add project management_
 + **List Posts** _Shortcode and Widget to display post via post-type_
 + **Team** _Add Staff Management_
 + **Testimonials** _Add customer feedback including comment, date, company name and website_
 + **Theme Settings** _Theme Settings Management_
++ **WooCommerce CSV Importer** _WooCommerce Product Importer from CSV File_
 
 Available widgets
 -----------------

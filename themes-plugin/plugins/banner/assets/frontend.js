@@ -1,3 +1,12 @@
+jQuery(function($) {
+	$('.carousel').carousel();
+});
+
+/* BOOTSTRAP TRANSITION */
+!function(a){a(function(){a.support.transition=(function(){var b=(function(){var e=document.createElement("bootstrap"),d={WebkitTransition:"webkitTransitionEnd",MozTransition:"transitionend",OTransition:"oTransitionEnd otransitionend",transition:"transitionend"},c;
+for(c in d){if(e.style[c]!==undefined){return d[c];}}}());return b&&{end:b};})();});}(window.jQuery);
+
+/* BOOTSTRAP CAROUSEL */
 !function(b){var c=function(e,d){this.$element=b(e);this.$indicators=this.$element.find(".carousel-indicators");this.options=d;this.options.pause=="hover"&&this.$element.on("mouseenter",b.proxy(this.pause,this)).on("mouseleave",b.proxy(this.cycle,this));
 };c.prototype={cycle:function(d){if(!d){this.paused=false;}if(this.interval){clearInterval(this.interval);}this.options.interval&&!this.paused&&(this.interval=setInterval(b.proxy(this.next,this),this.options.interval));
 return this;},getActiveIndex:function(){this.$active=this.$element.find(".item.active");this.$items=this.$active.parent().children();return this.$items.index(this.$active);
