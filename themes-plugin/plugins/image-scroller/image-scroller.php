@@ -210,6 +210,9 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
 				'id' 			=> '',
 				'navigation' 	=> true //Display navigation or not
 			), $atts ) );
+
+			if ( ! $id )
+				return;
 			
 			//Generate Query:
 			$args = array(
@@ -233,15 +236,20 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
 				//Get meta datas from DB:
 				$items = get_post_meta( $post->ID, $this->name, true );
 
-				$link_to = ( $items['link_to'] ) ? $items['link_to'] : '#';
-
 				if ( $items ): foreach ( $items as $key => $item ) :
+
 					$image = wp_get_attachment_image_src( $item['image_id'], 'thumbnail' );
+					$link_to = $item['link_to'];
+
 					$output .= '<div class="item">';
 
-					$output .= ( $items['link_to'] ) ? '<a href="' . $items['link_to'] . '" target="_blank">' : '';
+					if ( $link_to )
+						$output .= '<a href="' . $items['link_to'] . '" target="_blank">';
+
 					$output .= '<img src="' . $image[0] . '" border="0" />';
-					$output .= ( $items['link_to'] ) ? '</a>' : '';
+					
+					if ( $link_to )
+						$output .= '</a>';
 					
 					$output .= '</div>';
 

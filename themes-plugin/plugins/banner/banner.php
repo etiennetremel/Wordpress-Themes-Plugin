@@ -261,28 +261,32 @@ if ( ! class_exists( 'Banner' ) ) {
 						$carousel_indicators .= '<li data-target="#' . $carousel_id . '" data-slide-to="' . $index . '" class="' . $active . '"></li>';
 
 						$slides .= '<div class="item ' . $active . '">
-										<img src="' . wp_get_attachment_url( $item['image_id'] ) . '" alt="" />
-										<div class="carousel-caption">
-											' . $item['text'] . '
-										</div>
-									</div>';
+										<img src="' . wp_get_attachment_url( $item['image_id'] ) . '" alt="" />';
+
+						if ( ! empty( $item['text'] ) ) :
+							$slides .= '	<div class="carousel-caption">
+												' . $item['text'] . '
+											</div>';
+						endif;
+
+						$slides .= '</div>';
 
 					endforeach; 
 
-					$carousel_controls = '<a class="carousel-control left" href="#' . $carousel_id . '" data-slide="prev">&lsaquo;</a>
-										<a class="carousel-control right" href="#' . $carousel_id . '" data-slide="next">&rsaquo;</a>';
+					$carousel_controls = '<a class="carousel-control left" href="#' . $carousel_id . '" data-slide="prev"><span class="arrow">&lsaquo;</span></a>
+										<a class="carousel-control right" href="#' . $carousel_id . '" data-slide="next"><span class="arrow">&rsaquo;</span></a>';
 
 					$output .= '<div id="' . $carousel_id . '" class="carousel slide">';
 
 					//Display indicators
-					if ( $indicators && sizeof( $items ) > 1 )
+					if ( 'true' == $indicators && sizeof( $items ) > 1 )
 						$output .= '<ol class="carousel-indicators">' . $carousel_indicators . '</ol>';
 
 
 					$output .= '<div class="carousel-inner">' . $slides . '</div>';
 
 					//Display controls
-					if ( $controls && sizeof( $items ) > 1 )
+					if ( 'true' == $controls && sizeof( $items ) > 1 )
 						$output .= $carousel_controls;
 					
 					$output .= '</div>';
