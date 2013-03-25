@@ -1,5 +1,5 @@
 jQuery(function($) {
-	$('.carousel').carousel();
+    $('.carousel').carousel();
 });
 
 /* BOOTSTRAP TRANSITION */
