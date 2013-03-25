@@ -50,10 +50,6 @@ if ( ! class_exists( 'WooCommerce_CSV_Importer' ) ) {
 
 			/* ADD MENU TO APPEARANCE TAB */
 			add_action( 'admin_menu', array( $this, 'add_menu' ) );
-
-			/* REGISTER SCRIPTS & STYLE */
-            add_action( 'admin_init', array( $this, 'register_scripts' ) );
-            add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		}
 
 		public function init() {
@@ -244,14 +240,6 @@ if ( ! class_exists( 'WooCommerce_CSV_Importer' ) ) {
 	        </div>
             <?php
 		}
-
-		public function register_scripts() {
-            wp_register_style( 'woocommerce-importer_style', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/woocommerce-importer.css' );
-        }
-        
-        public function enqueue_scripts() {
-            wp_enqueue_style( 'woocommerce-importer_style' );
-        }
 
         function display_notifications() {        	
         	if ( sizeof( $this->notifications ) ) {

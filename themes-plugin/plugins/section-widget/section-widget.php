@@ -23,7 +23,7 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 	class Section_Widget_Constructor extends WP_Widget {
 		function Section_Widget_Constructor() {
 			$widget_ops = array(
-				'classname'		=> 'section_widget_constructor',
+				'classname'		=> 'section-widget',
 				'description'   => __( 'Add Image, Title, Content and Read More Button' )
 			);
 
@@ -41,9 +41,11 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
 		}
 
 		function enqueue_assets() {
+			wp_enqueue_media();
+
 			wp_enqueue_script(
 				'section-widget_script',
-				TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/section-widget.js',
+				TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.js',
 				array(
 					'jquery',
 					'media-upload',

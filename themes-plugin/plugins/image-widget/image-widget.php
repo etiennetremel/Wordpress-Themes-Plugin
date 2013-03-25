@@ -23,7 +23,7 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 	class Image_Widget_Constructor extends WP_Widget {
 		function Image_Widget_Constructor() {
 			$widget_ops = array(
-				'classname'		=> 'image_widget_constructor',
+				'classname'		=> 'image-widget',
 				'description'   => __( 'Add image and link' )
 			);
 
@@ -35,9 +35,11 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 		}
 
 		function enqueue_assets() {
+			wp_enqueue_media();
+			
 			wp_enqueue_script(
 				'image-widget_script',
-				TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/image-widget.js',
+				TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.js',
 				array(
 					'jquery',
 					'media-upload',
@@ -67,7 +69,7 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 					<a href="<?php echo $link; ?>" target="<?php echo $link_target; ?>"><img src="<?php echo $image[0]; ?>" alt="<?php echo $title; ?>" border="0" /></a>
 				</div>
 				<?php if ( ! empty( $title ) ) : ?>
-				<div class="title"><span><?php echo $title; ?></span></div>
+					<?php echo $before_title . $title . $after_title; ?>
 				<?php endif; ?>
 				<?php
 			endif;
@@ -136,7 +138,7 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
 
 		function update( $new_instance, $old_instance ) {
 			$instance = $old_instance;
-			$instance['image_id'] 			= intval( strip_tags( $new_instance['image_id'] ) );
+			$instance['image_id'] 			= intval( $new_instance['image_id'] );
 			$instance['title'] 				= strip_tags( $new_instance['title'] );
 			$instance['link'] 				= strip_tags( $new_instance['link'] );
 			$instance['external_link'] 		= strip_tags( $new_instance['external_link'] );

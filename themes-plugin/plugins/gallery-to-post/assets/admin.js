@@ -1,5 +1,4 @@
-jQuery(document).ready(function($) {
-	
+jQuery(document).ready(function($) {	
 	/*
 	 * Draggable / Sortable:
 	 */
@@ -8,12 +7,12 @@ jQuery(document).ready(function($) {
 	});
 	
 	$('#gallery_to_post .items').delegate('input[type=text], textarea', 'focus', function () {
-        $('#gallery_to_post .items').enableSelection();
-    });
+		$('#gallery_to_post .items').enableSelection();
+	});
 
-    $('#gallery_to_post .items').delegate('input[type=text],textarea', 'blur', function () {
-        $('#gallery_to_post .items').disableSelection();
-    });
+	$('#gallery_to_post .items').delegate('input[type=text],textarea', 'blur', function () {
+		$('#gallery_to_post .items').disableSelection();
+	});
 	
 	
 	/*
@@ -30,7 +29,7 @@ jQuery(document).ready(function($) {
 			'	</div>',
 			'	<div class="metas">',
 			'		<p><label>Caption:</label></p>',
-	        '		<p><textarea name="captions[]" cols="50" rows="5"></textarea></p>',
+			'		<p><textarea name="captions[]" cols="50" rows="5"></textarea></p>',
 			'	</div>',
 			'</div>'
 		].join(''));
@@ -42,27 +41,37 @@ jQuery(document).ready(function($) {
 			$(this).parents('.item').remove();
 		}
 	});
-	
-	$('#gallery_to_post .browse-image').live('click', function() {
-		var postID = $('#gallery_to_post').attr('data-post-id'),
-			button = $(this),
-			thumb = button.parents('.item').find('.thumb');
-			
-		if(postID=="") postID = 1;
-			
-		window.send_to_editor = function(html) {
-			var imgurl = $('img', html).attr('src'),
-				pat = /wp-image-([0-9]+)/g,
-				imgID = pat.exec($('img', html).attr('class'));
-			try {
-				button.prev().val(imgID[1]);
-				thumb.html($('img', html).attr('width','100%').removeAttr('height'));
-				tb_remove();
-			} catch(e){
-			}
+
+	var media_manager;
+	$('.browse-image').on('click', function(e) {
+		e.preventDefault();
+
+		var $button = $(this),
+			thumb = $button.parents('.image'),
+			send_attachment_bkp = wp.media.editor.send.attachment;
+		
+		if (media_manager) {
+			media_manager.open();
+			return;
 		}
-	 
-		tb_show('', 'media-upload.php?post_id=' + postID + '&amp;type=image&amp;TB_iframe=1');
-		return false;
+
+		media_manager = wp.media.frames.media_manager = wp.media({
+			title: 'Choose an image',
+			library : { type : 'image'},
+			button : { text : 'Select' },
+			multiple: false
+		});
+
+		media_manager.on('select', function() {
+			var attachment = media_manager.state().get('selection').first().toJSON();
+			var img = $('<img />').attr({
+				'width': '100',
+				'src': attachment.url
+			});
+			thumb.html(img);
+			$button.prev().val(attachment.id);
+		});
+
+		media_manager.open();
 	});
 });

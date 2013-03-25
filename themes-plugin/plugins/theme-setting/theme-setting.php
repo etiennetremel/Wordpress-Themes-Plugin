@@ -36,10 +36,6 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
 
             /* ADD MENU TO APPEARANCE TAB */
             add_action( 'admin_menu', array( $this, 'add_menu' ) );
-
-            /* REGISTER SCRIPTS & STYLE */
-            add_action( 'admin_init', array( $this, 'register_scripts' ) );
-            add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         }
 
         public function init() {
@@ -142,14 +138,6 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
                 </form>
             </div>
             <?php
-        }
-
-        public function register_scripts() {
-            wp_register_style( $this->name . '_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.css' );
-        }
-        
-        public function enqueue_scripts() {
-            wp_enqueue_style( $this->name . '_style' );
         }
     }
 }

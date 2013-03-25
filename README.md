@@ -30,3 +30,4 @@ Available widgets
 -----------------
 + **Section Widget** _Widget add Image, Title, Content and Read More Button_
 + **Image Widget** _Widget add an image with a link_
++ **Twitter Widget** _Widget add twitter feed_

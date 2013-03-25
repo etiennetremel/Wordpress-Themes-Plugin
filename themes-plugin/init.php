@@ -86,9 +86,15 @@
 
 	    if ( isset( $_GET['page'] ) && $_GET['page'] == 'themes-plugin-settings' ) {
 			
-			if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' && isset( $_REQUEST['plugins'] ) ) {			
+			if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' ) {			
 				
 				$options = $_REQUEST['plugins'];
+
+				//Empty array if no plugins selected
+				if ( isset( $_REQUEST['plugins'] ) )
+					$options = $_REQUEST['plugins'];
+				else
+					$options = array();
 
 				if( update_option( 'themes_active_plugin', $options ) ) {
 					$notification = 'Settings saved.';

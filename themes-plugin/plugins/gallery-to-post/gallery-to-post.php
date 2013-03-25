@@ -10,7 +10,7 @@ Author: Etienne Tremel
 if ( ! class_exists( 'Gallery_To_Post' ) ) {
 	class Gallery_To_Post {
 
-		private $name = 'gallery_to_post';
+		private $name = 'gallery-to-post';
 		private $name_plurial, $label, $label_plurial;
 
 		public function __construct() {
@@ -31,11 +31,13 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
 			/* GENERATE SHORT CODE */
-			add_shortcode('gallery_to_post', array( $this, 'shortcode' ) );
+			add_shortcode( 'gallery_to_post', array( $this, 'shortcode' ) );
 		}
 
-		public function meta_box(){
-			add_meta_box( $this->name . '-items', 'Gallery Items', array( $this, 'meta' ), array( 'post', 'page' ), 'normal', 'low' );
+		public function meta_box() {
+			$screens = array( 'post', 'page' );
+			foreach ( $screens as $screen )
+				add_meta_box( $this->name . '-items', 'Gallery Items', array( $this, 'meta' ), $screen );
 		}  
 	
 		public function meta( $post ) {
@@ -126,9 +128,14 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 		}
 	
 		public function enqueue_admin_scripts() {
-			wp_enqueue_script( $this->name . '_admin_script' );
-			wp_enqueue_style( $this->name . '_admin_style' );
-			wp_enqueue_style( 'thickbox' );
+			global $post_type;
+			if ( $this->name == $post_type ) {
+				wp_enqueue_media();
+
+				wp_enqueue_script( $this->name . '_admin_script' );
+				wp_enqueue_style( $this->name . '_admin_style' );
+				wp_enqueue_style( 'thickbox' );
+			}
 		}
 
 		public function shortcode( $atts ) {

@@ -210,9 +210,14 @@ if ( ! class_exists( 'Banner' ) ) {
 		}
 	
 		public function enqueue_admin_scripts() {
-			wp_enqueue_script( $this->name . '_admin_script' );
-			wp_enqueue_style( $this->name . '_admin_style' );
-			wp_enqueue_style( 'thickbox' );
+			global $post_type;
+			if ( $this->name == $post_type ) {
+				wp_enqueue_media();
+				
+				wp_enqueue_script( $this->name . '_admin_script' );
+				wp_enqueue_style( $this->name . '_admin_style' );
+				wp_enqueue_style( 'thickbox' );
+			}
 		}
 
 		public function enqueue_frontend_scripts() {
