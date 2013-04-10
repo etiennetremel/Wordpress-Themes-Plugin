@@ -30,20 +30,20 @@ if ( ! class_exists( 'Team' ) ) {
             add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
 
             /* ON PAGE UPDATE/PUBLISH, SAVE CUSTOM DATA IN DATABASE */
-            add_action( 'save_post', array( $this, 'save_staff' ) );
+            add_action( 'save_post', array( $this, 'save' ) );
 
             /* CUSTOMISE THE COLUMNS TO SHOW IN ADMIN AREA */
             //Define visible fields:
-            add_filter( 'manage_edit-staff_columns', array( $this, 'edit_columns' ) );
+            add_filter( 'manage_edit-team_columns', array( $this, 'edit_columns' ) );
 
             //Associate datas to fields:
-            add_action( 'manage_staff_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 );
+            add_action( 'manage_team_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 );
 
             /* GENERATE SHORT CODE */
             add_shortcode('team', array( $this, 'shortcode' ) );
         }
 
-        public function staff_register() {
+        public function register() {
             $labels = array(
                 'name'                  => __( $this->label_plurial ),
                 'singular_name'         => __( $this->label ),
@@ -179,15 +179,15 @@ if ( ! class_exists( 'Team' ) ) {
                 while ( $query->have_posts() ): $query->the_post();
             
                     //Get meta datas from DB:
-                    $metas = extract( get_post_meta( $post->ID, $this->label, true ) );
+                    $metas = get_post_meta( $post->ID, $this->name, true );
 
                     $name         = '<p class="name">' . get_the_title() . '</p>';
-                    $position     = ( isset( $position ) ) ? '<p class="position">' . $position . '</p>' : '';
-                    $email        = ( isset( $email ) )    ? '<p class="email"><a href="mailto:' . $email . '">' . $email . '</a></p>' : '';
+                    $position     = ( isset( $metas['position'] ) ) ? '<p class="position">' . $metas['position'] . '</p>' : '';
+                    $email        = ( isset( $metas['email'] ) )    ? '<p class="email"><a href="mailto:' . $metas['email'] . '">' . $metas['email'] . '</a></p>' : '';
 
                     $output .= '<div class="staff">
                                     <div class="thumb">
-                                    ' . ( ( has_post_thumbnail( $post->ID ) ) ? get_the_post_thumbnail( $post->ID ) : '' ) . '
+                                        ' . ( ( has_post_thumbnail( $post->ID ) ) ? get_the_post_thumbnail( $post->ID ) : '' ) . '
                                     </div>
                                     <div class="metas">
                                         ' . $name . '

@@ -11,27 +11,14 @@ if ( ! class_exists( 'Image_Widget' ) ) {
         public function __construct() {
             /* INIT WIDGET */
             add_action( 'widgets_init', array( $this, 'image_widget_init' ) );
-        }
-
-        public function image_widget_init() {
-            register_widget( 'Image_Widget_Constructor' );
-        }
-    }
-}
-
-if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
-    class Image_Widget_Constructor extends WP_Widget {
-        function Image_Widget_Constructor() {
-            $widget_ops = array(
-                'classname'     => 'image-widget',
-                'description'   => __( 'Add image and link' )
-            );
-
-            parent::__construct( 'image-widget', __( 'Image Widget' ), $widget_ops );
 
             global $pagenow;
             if ( 'widgets.php' == $pagenow )
                 add_action( 'admin_print_scripts', array( &$this, "enqueue_assets" ) );
+        }
+
+        function image_widget_init() {
+            register_widget( 'Image_Widget_Constructor' );
         }
 
         function enqueue_assets() {
@@ -48,6 +35,19 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
                 )
             );
         }
+    }
+}
+
+if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
+    class Image_Widget_Constructor extends WP_Widget {
+        function Image_Widget_Constructor() {
+            $widget_ops = array(
+                'classname'     => 'image-widget',
+                'description'   => __( 'Add image and link' )
+            );
+
+            parent::__construct( 'image-widget', __( 'Image Widget' ), $widget_ops );
+        }
 
         function widget( $args, $instance ) {
             extract( $args );
@@ -63,7 +63,7 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
             echo $before_widget;
 
             if( ! empty( $image_id ) ):
-                $image = wp_get_attachment_image_src( $image_id, 'original' );
+                $image = wp_get_attachment_image_src( $image_id, 'large' );
                 ?>
                 <div class="image">
                     <a href="<?php echo $link; ?>" target="<?php echo $link_target; ?>"><img src="<?php echo $image[0]; ?>" alt="<?php echo $title; ?>" border="0" /></a>
@@ -85,11 +85,13 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
             $link             = esc_attr( isset( $instance['link'] ) ? $instance['link'] : '' );
             $external_link    = esc_attr( isset( $instance['external_link'] ) ? $instance['external_link'] : '' );
             $link_target      = esc_attr( isset( $instance['link_target'] ) ? $instance['link_target'] : '' );
+
+            $image = wp_get_attachment_image_src( $image_id, 'large' );
             ?>
             <div>
                 <label for="<?php echo $this->get_field_id( 'image_id' ); ?>"><?php _e( 'Image:' ); ?></label>
                 <div class="image">
-                    <?php echo wp_get_attachment_image( $image_id ); ?>
+                    <img src="<?php echo $image[0]; ?>" alt="<?php echo $title; ?>" border="0" style="width:100%; height:auto;" />
                 </div>
                 <input type="hidden" name="<?php echo $this->get_field_name( 'image_id' ); ?>" id="<?php echo $this->get_field_id( 'image_id' ); ?>" value="<?php echo $image_id; ?>" />
                 <button class="browse-image button button-highlighted">Choose an image</button>

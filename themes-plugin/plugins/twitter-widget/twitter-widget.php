@@ -79,6 +79,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
             echo $before_widget;
 
             if ( sizeof( $tweets ) > 0 ):
+                $limit_number = ( sizeof( $feed ) > $limit_number ) ? $limit_number : sizeof( $feed );
                 ?>
                 <?php if ( ! empty( $title ) ) : ?>
                     <?php echo $before_title . $title . $after_title; ?>
@@ -87,7 +88,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
                 <div class="slide">
                 <?php endif; ?>
                     <ul class="feed">
-                        <?php for ( $i=0; $i<$limit_number; $i++): ?>
+                        <?php for ( $i = 0; $i < $limit_number; $i++ ) : ?>
                             <?php if ( $tweets[ $i ] ): $tweet = $tweets[ $i ]; ?>
                             <li><span class="message"><?php echo $this->generateTweeterMetas( $tweet['text'] ); ?></span> <span class="date"><?php echo $this->timeAgo( $tweet['created_at'] ); ?></span></li>
                             <?php endif; ?>
@@ -171,7 +172,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
             $title                 = esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' );
             $tweeter_username      = esc_attr( isset( $instance['tweeter_username'] ) ? $instance['tweeter_username'] : '' );
             $slide_tweets          = esc_attr( isset( $instance['slide_tweets'] ) ? $instance['slide_tweets'] : '' );
-            $limit_number          = esc_attr( isset( $instance['limit_number'] ) ? $instance['limit_number'] : '' );
+            $limit_number          = esc_attr( isset( $instance['limit_number'] ) ? $instance['limit_number'] : '5' );
             ?>
             <p>
                 <label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ) ?></label> <em>(not visible if empty)</em>
@@ -193,6 +194,9 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
 
         function update( $new_instance, $old_instance ) {
             $instance = $old_instance;
+
+            delete_transient( 'twitter_feed' );
+
             $instance['tweeter_username'] = strip_tags( $new_instance['tweeter_username'] );
             $instance['title']            = strip_tags( $new_instance['title'] );
             $instance['slide_tweets']     = strip_tags( $new_instance['slide_tweets'] );

@@ -2,26 +2,26 @@ jQuery(document).ready(function($) {
     /**
      * Draggable / Sortable:
      */
-    $('#gallery_to_post .items').sortable({
+    $('#gallery-to-post .items').sortable({
         revert: true
     });
     
-    $('#gallery_to_post .items').delegate('input[type=text], textarea', 'focus', function () {
-        $('#gallery_to_post .items').enableSelection();
+    $('#gallery-to-post .items').delegate('input[type=text], textarea', 'focus', function () {
+        $('#gallery-to-post .items').enableSelection();
     });
 
-    $('#gallery_to_post .items').delegate('input[type=text],textarea', 'blur', function () {
-        $('#gallery_to_post .items').disableSelection();
+    $('#gallery-to-post .items').delegate('input[type=text],textarea', 'blur', function () {
+        $('#gallery-to-post .items').disableSelection();
     });
     
     
     /**
      * Functions:
      */
-    $('#gallery_to_post .add-new-item').live('click', function(e) {
+    $('#gallery-to-post').on('click', '.add-new-item', function(e) {
         e.preventDefault();
-        var n = $('#gallery_to_post .items .item').length+1;
-        $('#gallery_to_post .items').append( [
+        var n = $('#gallery-to-post .items .item').length+1;
+        $('#gallery-to-post .items').append( [
             '<div class="item">',
             '    <div class="image">',
             '        <div class="thumb"></div>',
@@ -35,7 +35,7 @@ jQuery(document).ready(function($) {
         ].join(''));
     });
     
-    $('#gallery_to_post .delete-image').live('click', function() {
+    $('#gallery-to-post').on('click', '.delete-image', function() {
         var r = confirm('Remove this image from the gallery?');
         if(r) {
             $(this).parents('.item').remove();
@@ -43,32 +43,30 @@ jQuery(document).ready(function($) {
     });
 
     var media_manager;
-    $('.browse-image').on('click', function(e) {
+    $('#gallery-to-post').on('click', '.browse-image', function(e) {
         e.preventDefault();
 
         var $button = $(this),
-            thumb = $button.parents('.image'),
+            $thumb = $button.parents('.image').find('.thumb'),
             send_attachment_bkp = wp.media.editor.send.attachment;
         
-        if (media_manager) {
-            media_manager.open();
-            return;
+        if ( ! media_manager) {
+            media_manager = wp.media.frames.media_manager = wp.media({
+                title:    'Choose an image',
+                library:  { type : 'image'},
+                button:   { text : 'Select' },
+                multiple: false
+            });
         }
 
-        media_manager = wp.media.frames.media_manager = wp.media({
-            title: 'Choose an image',
-            library : { type : 'image'},
-            button : { text : 'Select' },
-            multiple: false
-        });
-
+        media_manager.off('select');
         media_manager.on('select', function() {
             var attachment = media_manager.state().get('selection').first().toJSON();
-            var img = $('<img />').attr({
+            var $img = $('<img />').attr({
                 'width': '100',
                 'src': attachment.url
             });
-            thumb.html(img);
+            $thumb.html($img);
             $button.prev().val(attachment.id);
         });
 

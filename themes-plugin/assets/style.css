@@ -44,13 +44,19 @@ fieldset legend {
   color: #666666;
   display: inline-block;
   margin-left: 20px;
+  vertical-align: top;
 }
-.options_wrap label {
+.options_wrap label,
+.options_wrap input[type=checkbox],
+.options_wrap input[type=radio] {
   display: inline-block;
   width: 200px;
   vertical-align: top;
 }
-.options_wrap input[type=text] {
+.options_wrap input[type=text],
+.options_wrap input[type=password],
+.options_wrap input[type=file],
+.options_wrap textarea {
   width: 200px;
   padding: 5px 8px;
 }
@@ -58,10 +64,6 @@ fieldset legend {
   width: 184px;
   padding: 5px 8px;
   display: inline-block;
-}
-.options_wrap .form-field input,
-.options_wrap .form-field textarea {
-  width: 250px;
 }
 .options_wrap .form-field textarea {
   height: 80px;

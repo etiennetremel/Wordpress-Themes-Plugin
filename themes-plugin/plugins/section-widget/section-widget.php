@@ -11,9 +11,29 @@ if ( ! class_exists( 'Section_Widget' ) ) {
         public function __construct() {
             /* INIT WIDGET */
             add_action( 'widgets_init', array( $this, 'section_widget_init' ) );
+
+            global $pagenow;
+            if ( 'widgets.php' == $pagenow )
+                add_action( 'admin_print_scripts', array( &$this, "enqueue_assets" ) );
         }
+
         function section_widget_init() {
             register_widget( 'Section_Widget_Constructor' );
+        }
+
+        function enqueue_assets() {
+            wp_enqueue_media();
+            
+            wp_enqueue_script(
+                'image-widget_script',
+                TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.js',
+                array(
+                    'jquery',
+                    'media-upload',
+                    'thickbox',
+                    'jquery-ui-core'
+                )
+            );
         }
     }
 }
@@ -33,26 +53,6 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
             );
 
             parent::__construct( 'section-widget', __('Section Widget'), $widget_ops, $control_ops );
-
-            global $pagenow;
-            if ( 'widgets.php' == $pagenow )
-                add_action('admin_print_scripts', array(&$this, "enqueue_assets"));
-
-        }
-
-        function enqueue_assets() {
-            wp_enqueue_media();
-
-            wp_enqueue_script(
-                'section-widget_script',
-                TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.js',
-                array(
-                    'jquery',
-                    'media-upload',
-                    'thickbox',
-                    'jquery-ui-core'
-                )
-            );
         }
 
         function widget( $args, $instance ) {
@@ -74,7 +74,7 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
                 echo $before_title . '<a href="' . $link . '" target="' . $link_target . '">' . $title . '</a>' . $after_title;
 
             if( ! empty( $image_id ) ) {
-                $image = wp_get_attachment_image_src( $image_id, 'original' );
+                $image = wp_get_attachment_image_src( $image_id, 'large' );
                 ?>
                 <div class="image">
                     <a href="<?php echo $link; ?>" target="<?php echo $link_target; ?>"><img src="<?php echo $image[0]; ?>" alt="<?php echo $title; ?>" border="0" /></a>
@@ -100,11 +100,13 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
             $link               = esc_attr( isset( $instance['link'] ) ? $instance['link'] : '' );
             $external_link      = esc_attr( isset( $instance['external_link'] ) ? $instance['external_link'] : '' );
             $link_target        = esc_attr( isset( $instance['link_target'] ) ? $instance['link_target'] : '' );
+            
+            $image = wp_get_attachment_image_src( $image_id, 'large' );
             ?>
             <div>
                 <label for="<?php echo $this->get_field_id('image_id'); ?>"><?php _e('Image:'); ?></label>
                 <div class="image">
-                    <?php echo wp_get_attachment_image($image_id); ?>
+                    <img src="<?php echo $image[0]; ?>" alt="<?php echo $title; ?>" border="0" style="width:100%; height:auto;" />
                 </div>
                 <input type="hidden" name="<?php echo $this->get_field_name('image_id'); ?>" id="<?php echo $this->get_field_id('image_id'); ?>" value="<?php echo $image_id; ?>" />
                 <button class="browse-image button button-highlighted">Choose</button>

@@ -27,7 +27,7 @@ $theme_options = array(
 if ( ! class_exists( 'Theme_Setting' ) ) {
     class Theme_Setting {
 
-        private $name = 'theme_setting';
+        private $name = 'theme-setting';
         private $name_plurial, $label, $label_plurial;
 
         public function __construct() {
@@ -145,7 +145,7 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
 /* FUNCTION TO GET THE VALUE FROM THE TEMPLATE */
 if ( ! function_exists( 'get_theme_setting' ) ) {
     function get_theme_setting( $name ) {
-        $settings = get_option( 'theme_setting' ) ? get_option( 'theme_setting' ) : array();
+        $settings = get_option( 'theme-setting' ) ? get_option( 'theme-setting' ) : array();
         if ( array_key_exists( $name, $settings ) )
             return stripslashes( $settings[ $name ] );
     }

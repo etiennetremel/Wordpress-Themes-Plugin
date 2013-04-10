@@ -18,7 +18,7 @@ jQuery(document).ready(function($) {
     /*
      * Functions:
      */
-    $('#image-scroller .add-new-item').live('click', function(e) {
+    $('#image-scroller').on('click', '.add-new-item', function(e) {
         e.preventDefault();
         var n = $('#image-scroller .items .item').length+1;
         $('#image-scroller .items').append( [
@@ -35,7 +35,7 @@ jQuery(document).ready(function($) {
         ].join(''));
     });
     
-    $('#image-scroller .delete-image').live('click', function() {
+    $('#image-scroller').on('click', '.delete-image', function() {
         var r = confirm('Remove this image from the scroller?');
         if(r) {
             $(this).parents('.item').remove();
@@ -43,32 +43,30 @@ jQuery(document).ready(function($) {
     });
 
     var media_manager;
-    $('.browse-image').on('click', function(e) {
+    $('#image-scroller').on('click', '.browse-image', function(e) {
         e.preventDefault();
 
         var $button = $(this),
-            thumb = $button.parents('.item').find('.thumb'),
+            $thumb = $button.parents('.item').find('.thumb'),
             send_attachment_bkp = wp.media.editor.send.attachment;
         
-        if (media_manager) {
-            media_manager.open();
-            return;
+        if ( ! media_manager) {
+            media_manager = wp.media.frames.media_manager = wp.media({
+                title:    'Choose an image',
+                library:  { type : 'image'},
+                button:   { text : 'Select' },
+                multiple: false
+            });
         }
 
-        media_manager = wp.media.frames.media_manager = wp.media({
-            title: 'Choose an image',
-            library : { type : 'image'},
-            button : { text : 'Select' },
-            multiple: false
-        });
-
+        media_manager.off('select');
         media_manager.on('select', function() {
             var attachment = media_manager.state().get('selection').first().toJSON();
-            var img = $('<img />').attr({
+            var $img = $('<img />').attr({
                 'width': '100',
                 'src': attachment.url
             });
-            thumb.html(img);
+            $thumb.html($img);
             $button.prev().val(attachment.id);
         });
 

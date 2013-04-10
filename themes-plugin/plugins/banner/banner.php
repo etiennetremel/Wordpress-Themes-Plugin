@@ -123,16 +123,14 @@ if ( ! class_exists( 'Banner' ) ) {
                             <p><label for="text">Text:</label></p>
                             <p>
                             <?php
-                            wp_editor( stripslashes( $item['text'] ), 'text_' . $i, array( 
+                            //stripslashes( $item['text'] )
+                            wp_editor( $item['text'], 'text_' . $index, array( 
                                 'textarea_name' => 'text[]', 
                                 'textarea_rows' => 5,
                                 'media_buttons' => true,
                                 'tinymce'       => array(
-                                    'theme_advanced_buttons1' => 'bold,italic,underline,formatselect',
-                                    'theme_advanced_buttons2' => ''
-                                ),
-                                'quicktags'     => false,
-                                'wpautop'       => true
+                                    'theme_advanced_buttons1' => 'bold, italic, underline, ul, formatselect'
+                                )
                             ) );
                             ?>
                             </p>
@@ -146,7 +144,18 @@ if ( ! class_exists( 'Banner' ) ) {
                         </div>
                         <div class="metas">
                             <p><label for="text">Text:</label></p>
-                            <p><textarea name="texts[]" id="text" cols="50" rows="5"></textarea></p>
+                            <p>
+                            <?php
+                            wp_editor( '', 'text_0', array( 
+                                'textarea_name' => 'text[]', 
+                                'textarea_rows' => 5,
+                                'media_buttons' => true,
+                                'tinymce'       => array(
+                                    'theme_advanced_buttons1' => 'bold, italic, underline, ul, formatselect'
+                                )
+                            ) );
+                            ?>
+                            </p>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -210,7 +219,7 @@ if ( ! class_exists( 'Banner' ) ) {
         }
 
         public function register_admin_scripts() {
-            wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.js',  array('media-upload', 'thickbox', 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
+            wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.js',  array('jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
             wp_register_style( $this->name . '_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.css' );
         }
     
@@ -221,7 +230,6 @@ if ( ! class_exists( 'Banner' ) ) {
                 
                 wp_enqueue_script( $this->name . '_admin_script' );
                 wp_enqueue_style( $this->name . '_admin_style' );
-                wp_enqueue_style( 'thickbox' );
             }
         }
 

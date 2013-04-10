@@ -18,7 +18,7 @@ jQuery(document).ready(function($) {
     /*
      * Functions:
      */
-    $('#banner .add-new-item').live('click', function(e) {
+    $('#banner').on('click', '.add-new-item', function(e) {
         e.preventDefault();
         var n = $('#banner .items .item').length+1;
         $('#banner .items').append( [
@@ -28,14 +28,14 @@ jQuery(document).ready(function($) {
             '        <div class="field"><p><label>Image ' + n + '</label></p><p><input type="hidden" name="images_id[]" value="" /><button class="browse-image button button-highlighted" type="button">Browse</button> <button class="delete-image button button-highlighted" type="button">Delete</button></p></div>',
             '    </div>',
             '    <div class="metas">',
-            '        <p><label for="text">Text:</label></p>',
-            '        <p><textarea name="texts[]" id="text" cols="50" rows="5"></textarea></p>',
+            '        <p><label for="text_' + n + '">Text:</label></p>',
+            '        <p><textarea name="text[]" id="text_' + n + '" cols="50" rows="5"></textarea></p>',
             '    </div>',
             '</div>'
         ].join(''));
     });
     
-    $('#banner .delete-image').live('click', function() {
+    $('#banner').on('click', '.delete-image', function() {
         var r = confirm('Remove this image from the banner?');
         if(r) {
             $(this).parents('.item').remove();
@@ -43,32 +43,29 @@ jQuery(document).ready(function($) {
     });
 
     var media_manager;
-    $('.browse-image').on('click', function(e) {
+     $('#banner').on('click', '.browse-image', function(e) {
         e.preventDefault();
 
         var $button = $(this),
-            thumb = $button.parents('.image'),
+            $thumb = $button.parents('.image').find('.thumb'),
             send_attachment_bkp = wp.media.editor.send.attachment;
         
-        if (media_manager) {
-            media_manager.open();
-            return;
+        if ( ! media_manager) {
+            media_manager = wp.media.frames.media_manager = wp.media({
+                title:    'Choose an image',
+                library:  { type : 'image'},
+                button:   { text : 'Select' },
+                multiple: false
+            });
         }
-
-        media_manager = wp.media.frames.media_manager = wp.media({
-            title: 'Choose an image',
-            library : { type : 'image'},
-            button : { text : 'Select' },
-            multiple: false
-        });
-
+        media_manager.off('select');
         media_manager.on('select', function() {
             var attachment = media_manager.state().get('selection').first().toJSON();
-            var img = $('<img />').attr({
+            var $img = $('<img />').attr({
                 'width': '100',
                 'src': attachment.url
             });
-            thumb.html(img);
+            $thumb.html($img);
             $button.prev().val(attachment.id);
         });
 

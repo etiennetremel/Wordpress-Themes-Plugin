@@ -2,6 +2,8 @@ Wordpress-Themes-Plugin
 =======================
 
 _Be aware that this is a Beta version, so you may find some bugs, please report it via GitHub!_
+_Versioning is not used yet until everything works properly_
+_Activing every plugins and widget can slowdown your Wordpress site_
 
 Extend themes functionnality by adding custom plugins inside the theme folder.
 
@@ -30,4 +32,5 @@ Available widgets
 -----------------
 + **Section Widget** _Widget add Image, Title, Content and Read More Button_
 + **Image Widget** _Widget add an image with a link_
-+ **Twitter Widget** _Widget add twitter feed_
++ **Twitter Widget** _Widget add Twitter feed_
++ **Instagram Widget** _Widget add Instagram feed_

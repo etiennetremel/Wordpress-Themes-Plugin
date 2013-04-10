@@ -1,0 +1,10 @@
+.instagram-widget .feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.instagram-widget .feed li .date {
+  display: block;
+  font-size: 0.8em;
+  font-style: italic;
+}

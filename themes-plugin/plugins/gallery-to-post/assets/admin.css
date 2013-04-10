@@ -1,8 +1,8 @@
-#gallery_to_post .clear {
+#gallery-to-post .clear {
   clear: both;
   height: 10px;
 }
-#gallery_to_post .sc {
+#gallery-to-post .sc {
   background: lightYellow;
   border: 1px solid #e6db55;
   -moz-border-radius: 3px;
@@ -14,23 +14,23 @@
   margin: 5px 0 15px;
   text-align: center;
 }
-#gallery_to_post .items {
+#gallery-to-post .items {
   cursor: move;
 }
-#gallery_to_post .items .item {
+#gallery-to-post .items .item {
   background: #dfdfdf;
   clear: both;
   margin: 10px;
   padding: 10px;
   display: inline-block;
 }
-#gallery_to_post .items .item .image {
+#gallery-to-post .items .item .image {
   width: 154px;
   float: left;
   margin-right: 10px;
   text-align: center;
 }
-#gallery_to_post .items .item .metas {
+#gallery-to-post .items .item .metas {
   width: 300px;
   float: left;
 }

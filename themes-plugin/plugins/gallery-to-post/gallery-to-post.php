@@ -3,7 +3,7 @@
 Plugin Name: Gallery To Post
 Version: 0.1
 Description: Add Gallery Management to post.
-Shortcode: [gallery_to_post]
+Shortcode: [gallery-to-post]
 Author: Etienne Tremel
 */
 
@@ -31,7 +31,7 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
             add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
             /* GENERATE SHORT CODE */
-            add_shortcode( 'gallery_to_post', array( $this, 'shortcode' ) );
+            add_shortcode( 'gallery-to-post', array( $this, 'shortcode' ) );
         }
 
         public function meta_box() {
@@ -48,13 +48,13 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
             //Get datas from DB:
             $items = get_post_meta( $post_id, $this->name, true );
             ?>
-            <div id="gallery_to_post" data-post-id="<?php echo $post_id; ?>">
+            <div id="gallery-to-post" data-post-id="<?php echo $post_id; ?>">
 
                 <?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
 
                 <div class="shortcode">
                     <p>Copy this code and paste it into where you would like to display the gallery.</p>
-                    <p class="sc">[gallery_to_post post_id="<?php echo $post_id; ?>"]</p>
+                    <p class="sc">[gallery-to-post post_id="<?php echo $post_id; ?>"]</p>
                 </div>
 
                 <div class="items">
@@ -149,7 +149,7 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
             //Get meta datas from DB:
             $items = get_post_meta( $post_id, $this->name, true );
             
-            $output = '<div id="gallery_to_post-' . $post_id . '" class="gallery_to_post">';
+            $output = '<div id="gallery-to-post-' . $post_id . '" class="gallery-to-post">';
 
             if ( $items ): foreach ( $items as $key => $item ) :
 
