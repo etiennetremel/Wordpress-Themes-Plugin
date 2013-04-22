@@ -21,10 +21,11 @@ Usage
 Available plugins
 -----------------
 + **Banner** _Add Custom Banner Using Bootstrap Transition & Carousel jQuery Script_
++ **Columnizer** _Shortcode to add columns in the content_
 + **Image Scroller** _Add a horizontal image scroller_
 + **Gallery to Post** _Add Gallery Management to post_
-+ **Projects** _Add project management_
 + **List Posts** _Shortcode and Widget to display post via post-type_
++ **Projects** _Add project management_
 + **Team** _Add Staff Management_
 + **Testimonials** _Add customer feedback including comment, date, company name and website_
 + **Theme Settings** _Theme Settings Management_
@@ -32,7 +33,7 @@ Available plugins
 
 Available widgets
 -----------------
-+ **Section Widget** _Widget add Image, Title, Content and Read More Button_
 + **Image Widget** _Widget add an image with a link_
++ **Section Widget** _Widget add Image, Title, Content and Read More Button_
 + **Twitter Widget** _Widget add Twitter feed_
 + **Instagram Widget** _Widget add Instagram feed_
