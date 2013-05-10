@@ -23,7 +23,7 @@ if ( ! class_exists( 'Section_Widget' ) ) {
 
         function enqueue_assets() {
             wp_enqueue_media();
-            
+
             wp_enqueue_script(
                 'image-widget_script',
                 TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.js',
@@ -48,7 +48,7 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
             );
 
             $control_ops = array(
-                'width'  => 560, 
+                'width'  => 560,
                 'height' => 400
             );
 
@@ -82,17 +82,19 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
                 <?php
             }
 
-            echo '<div class="content">' . ( ! empty( $instance['filter'] ) ? wpautop( $content ) : $content ) . '</div>';
+            $content = ( ! empty( $instance['filter'] ) ? wpautop( $content ) : $content );
+            if ( !empty( $content ) )
+                echo '<div class="content">' . $content . '</div>';
 
             if( ! empty( $more_button_title ) || ! empty( $link ))
                 echo '<div class="footer"><a href="' . $link . '" target="' . $link_target . '" title="' . $more_button_title. '"><div class="more">' . $more_button_title . '</div></a></div>';
-            
+
             echo $after_widget;
         }
 
         function form( $instance ) {
             $instance = wp_parse_args( (array) $instance, array( 'image_id' => '', 'title' => '', 'content' => '', 'more_button_title' => '', 'link' => '', 'external_link' => '', 'link_target' => '' ) );
-            
+
             $image_id           = esc_attr( isset( $instance['image_id'] ) ? $instance['image_id'] : 0 );
             $title              = strip_tags($instance['title']);
             $content            = esc_html( isset( $instance['content'] ) ? $instance['content'] : '' );
@@ -100,30 +102,32 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
             $link               = esc_attr( isset( $instance['link'] ) ? $instance['link'] : '' );
             $external_link      = esc_attr( isset( $instance['external_link'] ) ? $instance['external_link'] : '' );
             $link_target        = esc_attr( isset( $instance['link_target'] ) ? $instance['link_target'] : '' );
-            
+
             $image = wp_get_attachment_image_src( $image_id, 'large' );
             ?>
             <div>
                 <label for="<?php echo $this->get_field_id('image_id'); ?>"><?php _e('Image:'); ?></label>
                 <div class="image">
-                    <img src="<?php echo $image[0]; ?>" alt="<?php echo $title; ?>" border="0" style="width:100%; height:auto;" />
+                    <?php if ( ! empty( $image[0] ) ): ?>
+                        <img src="<?php echo $image[0]; ?>" border="0" style="width:100%; height:auto;" />
+                    <?php endif; ?>
                 </div>
                 <input type="hidden" name="<?php echo $this->get_field_name('image_id'); ?>" id="<?php echo $this->get_field_id('image_id'); ?>" value="<?php echo $image_id; ?>" />
                 <button class="browse-image button button-highlighted">Choose</button>
             </div>
             <hr />
-            
+
             <p>
                 <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
                 <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" />
             </p>
             <hr />
-            
+
             <p>
                 <label for="<?php echo $this->get_field_id('content'); ?>"><?php _e('Content:') ?></label>
                 <?php
-                wp_editor( stripslashes( $content ), $this->get_field_id('content'), array( 
-                    'textarea_name' => $this->get_field_name('content'), 
+                wp_editor( stripslashes( $content ), $this->get_field_id('content'), array(
+                    'textarea_name' => $this->get_field_name('content'),
                     'textarea_rows' => 5,
                     'media_buttons' => false,
                     'tinymce'       => array(
@@ -152,7 +156,7 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
                 tinyMCE.init( tinyMCEPreInit.mceInit['<?php echo $this->get_field_id('content'); ?>'] );
                 tinyMCE.init( tinyMCEPreInit.qtInit['<?php echo $this->get_field_id('content'); ?>'] );
             } catch(e) {};
-            
+
             </script>
             <hr />
 
@@ -200,7 +204,7 @@ if ( ! class_exists( 'Section_Widget_Constructor' ) ) {
             $instance = $old_instance;
             $instance['image_id']            = intval( strip_tags( $new_instance['image_id'] ) );
             $instance['title']               = strip_tags( $new_instance['title'] );
-            
+
             if ( current_user_can( 'unfiltered_html' ) )
                 $instance['content']         = $new_instance['content'];
             else

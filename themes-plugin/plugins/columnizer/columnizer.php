@@ -25,7 +25,7 @@ if ( ! class_exists( 'Columnizer' ) ) {
             extract( shortcode_atts( array(
                 'size'    => '1'
             ), $atts ) );
-            
+
             return '<div class="span-' . $size . '">' . do_shortcode( $content ) . '</div>';
         }
     }

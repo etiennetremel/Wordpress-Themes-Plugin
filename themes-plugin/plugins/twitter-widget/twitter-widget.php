@@ -79,7 +79,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
             echo $before_widget;
 
             if ( sizeof( $tweets ) > 0 ):
-                $limit_number = ( sizeof( $feed ) > $limit_number ) ? $limit_number : sizeof( $feed );
+                $limit_number = ( sizeof( $tweets ) > $limit_number ) ? $limit_number : sizeof( $tweets );
                 ?>
                 <?php if ( ! empty( $title ) ) : ?>
                     <?php echo $before_title . $title . $after_title; ?>
@@ -100,7 +100,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
             <?php else: ?>
                 <p>No tweets found for <?php echo '@' . $tweeter_username; ?></p>
             <?php endif;
-                 
+
             echo $after_widget;
         }
 
@@ -149,7 +149,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
         private function generateTweeterMetas( $text ) {
             //Links
             $links_pattern = '/(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:;,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:;,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:;,.]*\)|[A-Z0-9+&@#\/%=~_|$])/ix';
-            
+
             preg_match_all( $links_pattern, $text, $links_matched );
             $links = $links_matched[0];
 
@@ -168,7 +168,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
 
         function form( $instance ) {
             $instance = wp_parse_args( (array) $instance, array( 'tweeter_username' => '', 'slide_tweets' => '', 'limit_number' => '' ) );
-            
+
             $title                 = esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' );
             $tweeter_username      = esc_attr( isset( $instance['tweeter_username'] ) ? $instance['tweeter_username'] : '' );
             $slide_tweets          = esc_attr( isset( $instance['slide_tweets'] ) ? $instance['slide_tweets'] : '' );
