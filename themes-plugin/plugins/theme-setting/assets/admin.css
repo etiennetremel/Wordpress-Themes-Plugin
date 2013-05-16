@@ -1,7 +1,10 @@
-/*
- * FORMS
- */
+/* CUSTOM FORM STYLING */
 
+.section_title {
+  font-size: 2em;
+  margin: 1em 0;
+  font-weight: bold;
+}
 .section_title.level_1 {
   font-size: 2em;
   margin: 1em 0;
@@ -37,13 +40,19 @@ fieldset legend {
   color: #666666;
   display: inline-block;
   margin-left: 20px;
+  vertical-align: top;
 }
-.options_wrap label {
+.options_wrap label,
+.options_wrap input[type=checkbox],
+.options_wrap input[type=radio] {
   display: inline-block;
   width: 200px;
   vertical-align: top;
 }
-.options_wrap input[type=text] {
+.options_wrap input[type=text],
+.options_wrap input[type=password],
+.options_wrap input[type=file],
+.options_wrap textarea {
   width: 200px;
   padding: 5px 8px;
 }
@@ -52,20 +61,52 @@ fieldset legend {
   padding: 5px 8px;
   display: inline-block;
 }
-.options_wrap .form-field input,
-.options_wrap .form-field textarea {
-  width: 250px;
-}
 .options_wrap .form-field textarea {
   height: 80px;
 }
-.info {
-  background: lightYellow;
-  border: 1px solid #e6db55;
-  -moz-border-radius: 3px;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-  padding: 1em;
-  margin: 5px 0 15px;
-  text-align: center;
+.options_wrap .image-wrapper {
+  display: inline-block;
+  width: 100px;
+}
+.options_wrap .image-wrapper .image {
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  background: #dddddd;
+  border: 1px solid #cccccc;
+  overflow: hidden;
+}
+.options_wrap .image-wrapper .button {
+  margin-top: 1em;
+}
+#notification {
+  opacity: 0;
+  transition: opacity .5s;
+}
+#notification.fade {
+  opacity: 1;
+}
+#notification .notice {
+  padding: 8px 35px 8px 14px;
+  margin-bottom: 20px;
+  color: #c09853;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background-color: #fcf8e3;
+  border: 1px solid #fbeed5;
+  border-radius: 4px;
+}
+#notification .notice.success {
+  color: #468847;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+#notification .notice.error {
+  color: #b94a48;
+  background-color: #f2dede;
+  border-color: #eed3d7;
+}
+#notification .notice.info {
+  color: #3a87ad;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
 }

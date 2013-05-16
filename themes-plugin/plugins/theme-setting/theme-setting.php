@@ -1,34 +1,21 @@
 <?php
-/* 
+/*
 Plugin Name: Theme Setting
 Version: 0.1
 Description: Theme Settings Management
 Author: Etienne Tremel
 */
 
- //Define Fields
-global $theme_options;
-$theme_options = array(
-    array(
-        'type'          => 'textarea',
-        'label'         => __( 'Google Analytics Code' ),
-        'name'          => 'ga_code',
-        'description'   => 'Use get_theme_setting("ga_code");',
-        'default_value' => ''
-    ), array(
-        'type'          => 'text',
-        'label'         => __( 'Footer Copyright Text' ),
-        'name'          => 'footer_copyright',
-        'description'   => 'Use get_theme_setting("footer_copyright");',
-        'default_value' => '© ' . date( 'Y' ) . ' Copyright ' . get_bloginfo( 'name' )
-    )
-);
-
 if ( ! class_exists( 'Theme_Setting' ) ) {
+
+    //Get fields:
+    require( 'fields.php' );
+
     class Theme_Setting {
 
         private $name = 'theme-setting';
         private $name_plurial, $label, $label_plurial;
+        private $notification;
 
         public function __construct() {
             /* SAVE SETTINGS, ADD IT TO APPEARANCE MENU */
@@ -36,6 +23,10 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
 
             /* ADD MENU TO APPEARANCE TAB */
             add_action( 'admin_menu', array( $this, 'add_menu' ) );
+
+            /* REGISTER SCRIPTS & STYLE */
+            add_action( 'admin_init', array( $this, 'register_admin_scripts' ) );
+            add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
         }
 
         public function init() {
@@ -43,7 +34,7 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
             if ( ! current_user_can( 'edit_themes' ) )
                 return;
 
-            global $notification, $theme_options;
+            global $theme_options;
 
             if( isset( $_GET['page'] ) && $_GET['page'] == $this->name ) {
 
@@ -55,9 +46,9 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
                     'action',
                     'submit'
                 );
-                
+
                 if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' ) {
-                    
+
                     //Security check, data comming from the right form:
                     if ( ! isset( $_POST[ $this->name . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $this->name . '_nonce' ], plugin_basename( __FILE__ ) ) )
                         return;
@@ -70,7 +61,7 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
 
                     //Display notification if success.
                     if( update_option( $this->name, $options ) )
-                        $notification = 'Settings saved.';
+                        $this->notification = 'Settings saved.';
 
                 } else {
 
@@ -82,7 +73,7 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
             } else {
                 //init plugin: add default option in db if not already available:
                 $options = get_option( $this->name );
-                
+
                 if( ! $options ) {
                     $values = array();
                     foreach( $theme_options as $setting )
@@ -99,45 +90,62 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
         }
 
         public function theme_options(){
-            global $notification, $theme_options;     
+            global $theme_options;
             ?>
-        
+
             <div class="wrap columns-1">
                 <?php screen_icon(); ?><h2>Theme Settings</h2>
-            </div>
-            <?php
-            //Display notifications if needed
-            if ( isset ( $notification ) ) echo '<div class="info" class="updated fade"><p>' . $notification . '</p></div>';
-            ?>
-            
-            <div class="maindesc">
-                <p>In this area, you can manage the theme to whatever you like.</p>
-            </div>
-            <div class="options_wrap">
-                <form method="post">
-                    <?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
-                    
-                    <?php
-                    //Get options from DB
-                    $settings = get_option( $this->name );
-                   
-                    $theme_options_form = new Custom_Form();
 
-                    //If data in DB, overwrite default value of fields in the form:
-                    if ( $settings ) {
-                        foreach( $theme_options as &$field ) {
-                            if( isset( $settings[ $field['name'] ] ) )
-                                $field['default_value'] = stripslashes( $settings[ $field['name'] ] );
+                <?php if ( isset ( $this->notification ) ): ?>
+                    <div id="notification" class="fade">
+                        <div class="notice info"><?php echo $this->notification; ?></div>
+                    </div>
+                <?php endif; ?>
+
+                <div class="maindesc">
+                    <p>In this area, you can manage the theme to whatever you like.</p>
+                </div>
+                <div class="options_wrap">
+                    <form method="post">
+                        <?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
+
+                        <?php
+                        //Get options from DB
+                        $settings = get_option( $this->name );
+
+                        $theme_options_form = new Custom_Form();
+
+                        //If data in DB, overwrite default value of fields in the form:
+                        if ( $settings ) {
+                            foreach( $theme_options as &$field ) {
+                                if( isset( $settings[ $field['name'] ] ) )
+                                    $field['default_value'] = stripslashes( $settings[ $field['name'] ] );
+                            }
                         }
-                    }
 
-                    echo $theme_options_form->get_fields( $theme_options );
-                    ?>
-                    <input type="hidden" name="action" value="save" />
-                    <?php submit_button(); ?>
-                </form>
+                        echo $theme_options_form->get_fields( $theme_options );
+                        ?>
+                        <input type="hidden" name="action" value="save" />
+                        <?php submit_button(); ?>
+                    </form>
+                </div>
             </div>
             <?php
+        }
+
+        public function register_admin_scripts() {
+            wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.js',  array('media-upload', 'thickbox', 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
+            wp_register_style( $this->name . '_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.css' );
+        }
+
+        public function enqueue_admin_scripts() {
+            if ( isset( $_GET['page'] ) && 'theme-setting' == $_GET['page'] ) {
+                wp_enqueue_media();
+
+                wp_enqueue_script( $this->name . '_admin_script' );
+                wp_enqueue_style( $this->name . '_admin_style' );
+                wp_enqueue_style( 'thickbox' );
+            }
         }
     }
 }
@@ -148,6 +156,15 @@ if ( ! function_exists( 'get_theme_setting' ) ) {
         $settings = get_option( 'theme-setting' ) ? get_option( 'theme-setting' ) : array();
         if ( array_key_exists( $name, $settings ) )
             return stripslashes( $settings[ $name ] );
+        else
+            return false;
+    }
+}
+if ( ! function_exists( 'the_theme_setting' ) ) {
+    function the_theme_setting( $name ) {
+        $settings = get_option( 'theme-setting' ) ? get_option( 'theme-setting' ) : array();
+        if ( array_key_exists( $name, $settings ) )
+            echo stripslashes( $settings[ $name ] );
     }
 }
 ?>

@@ -1,7 +1,9 @@
-/*
- * FORMS
- */
+/* CUSTOM FORM STYLING */
+
 .section_title {
+    font-size: 2em;
+    margin: 1em 0;
+    font-weight: bold;
     &.level_1 {
         font-size: 2em;
         margin: 1em 0;
@@ -18,7 +20,7 @@
         font-weight: bold;
     }
 }
- 
+
 fieldset {
     border-bottom: 1px solid #DEDEDE;
     padding:10px;
@@ -28,7 +30,7 @@ fieldset {
         margin-left: -10px;
     }
 }
- 
+
 .form-field {
     overflow: hidden;
     zoom: 1;
@@ -39,40 +41,80 @@ fieldset {
         color:#666;
         display:inline-block;
         margin-left:20px;
+        vertical-align: top;
     }
 }
 
 .options_wrap {
-    label {
+    label, input[type=checkbox], input[type=radio] {
         display:inline-block;
         width:200px;
         vertical-align: top;
     }
-    input[type=text] {
+
+    input[type=text], input[type=password], input[type=file], textarea {
         width:200px;
         padding:5px 8px;
     }
+
     .field-group {
         width:184px;
         padding:5px 8px;
         display:inline-block;
     }
-    .form-field input, .form-field textarea {
-        width: 250px;
-    }
 
     .form-field textarea {
         height:80px;
     }
+
+    .image-wrapper {
+        display: inline-block;
+        width: 100px;
+        .image {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            background: #ddd;
+            border:1px solid #ccc;
+            overflow: hidden;
+        }
+        .button {
+            margin-top: 1em;
+        }
+    }
 }
 
-.info {
-    background: lightYellow;
-    border: 1px solid #E6DB55;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
-    padding: 1em;
-    margin: 5px 0 15px;
-    text-align: center;
+#notification {
+    opacity:0;
+    transition:opacity .5s;
+    &.fade {
+        opacity:1;
+    }
+    .notice {
+        padding: 8px 35px 8px 14px;
+        margin-bottom: 20px;
+        color: #c09853;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+        background-color: #fcf8e3;
+        border: 1px solid #fbeed5;
+          border-radius: 4px;
+
+        &.success {
+            color: #468847;
+            background-color: #DFF0D8;
+            border-color: #D6E9C6;
+        }
+
+        &.error {
+            color: #b94a48;
+            background-color: #f2dede;
+            border-color: #eed3d7;
+        }
+
+        &.info {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+    }
 }
