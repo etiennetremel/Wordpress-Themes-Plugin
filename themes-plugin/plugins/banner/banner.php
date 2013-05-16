@@ -30,13 +30,13 @@ if ( ! class_exists( 'Banner' ) ) {
             add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
 
             /* ON PAGE UPDATE/PUBLISH, SAVE CUSTOM DATA IN DATABASE */
-            add_action( 'save_post', array( $this, 'save' ) ); 
+            add_action( 'save_post', array( $this, 'save' ) );
 
             /* CUSTOMISE THE COLUMNS TO SHOW IN ADMIN AREA */
             //Define visible fields:
-            add_filter( 'manage_edit-banner_columns', array( $this, 'edit_columns' ) );  
+            add_filter( 'manage_edit-banner_columns', array( $this, 'edit_columns' ) );
             //Associate datas to fields:
-            add_action( 'manage_banner_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 ); 
+            add_action( 'manage_banner_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 );
 
             /* REGISTER SCRIPTS & STYLE */
             add_action( 'admin_init', array( $this, 'register_admin_scripts' ) );
@@ -71,8 +71,8 @@ if ( ! class_exists( 'Banner' ) ) {
                 'hierarchical'          => false,
                 'exclude_from_search'   => true,
                 'supports'              => array( 'title' )
-               );  
-        
+               );
+
             register_post_type( $this->name, $args );
         }
 
@@ -80,18 +80,18 @@ if ( ! class_exists( 'Banner' ) ) {
             $screen = get_current_screen();
             if ( $this->name == $screen->post_type )
                 $title = 'Enter banner name here';
-            
+
             return $title;
         }
 
         public function meta_box() {
             add_meta_box( $this->name . '-options', $this->label_plurial, array( $this, 'meta' ), $this->name, 'normal', 'low' );
         }
-    
+
         public function meta( $post ) {
             global $post;
             $post_id = $post->ID;
-            
+
             //Get datas from DB:
             $items = get_post_meta( $post_id, $this->name, true );
 
@@ -99,7 +99,7 @@ if ( ! class_exists( 'Banner' ) ) {
             <div id="banner" data-post-id="<?php echo $post_id; ?>">
 
                 <?php wp_nonce_field( plugin_basename( __FILE__ ), $this->name . '_nonce' ); ?>
-                
+
                 <div class="shortcode">
                     <p>Copy this code and paste it into your post, page or text widget content.</p>
                     <p class="sc">[banner id="<?php echo $post_id; ?>"]</p>
@@ -124,8 +124,8 @@ if ( ! class_exists( 'Banner' ) ) {
                             <p>
                             <?php
                             //stripslashes( $item['text'] )
-                            wp_editor( $item['text'], 'text_' . $index, array( 
-                                'textarea_name' => 'text[]', 
+                            wp_editor( $item['text'], 'text_' . $index, array(
+                                'textarea_name' => 'text[]',
                                 'textarea_rows' => 5,
                                 'media_buttons' => true,
                                 'tinymce'       => array(
@@ -146,8 +146,8 @@ if ( ! class_exists( 'Banner' ) ) {
                             <p><label for="text">Text:</label></p>
                             <p>
                             <?php
-                            wp_editor( '', 'text_0', array( 
-                                'textarea_name' => 'text[]', 
+                            wp_editor( '', 'text_0', array(
+                                'textarea_name' => 'text[]',
                                 'textarea_rows' => 5,
                                 'media_buttons' => true,
                                 'tinymce'       => array(
@@ -176,9 +176,9 @@ if ( ! class_exists( 'Banner' ) ) {
                 return;
 
               //Check permission:
-            if ( ! current_user_can( 'edit_posts' ) ) 
+            if ( ! current_user_can( 'edit_posts' ) )
                 return;
-            
+
             //Date stored in variable using "if" condition (short method)
             $images_id = ( isset( $_REQUEST['images_id'] ) ) ? $_REQUEST['images_id'] : '';
             $texts     = ( isset( $_REQUEST['text'] ) ) ? $_REQUEST['text'] : '';
@@ -207,7 +207,7 @@ if ( ! class_exists( 'Banner' ) ) {
 
         public function custom_columns( $col, $post_id ) {
             $items = get_post_meta( $post_id, $this->name, true );
-            
+
             switch ( $col ) {
                 case 'title':
                     the_title();
@@ -222,12 +222,12 @@ if ( ! class_exists( 'Banner' ) ) {
             wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.js',  array('jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
             wp_register_style( $this->name . '_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.css' );
         }
-    
+
         public function enqueue_admin_scripts() {
             global $post_type;
             if ( $this->name == $post_type ) {
                 wp_enqueue_media();
-                
+
                 wp_enqueue_script( $this->name . '_admin_script' );
                 wp_enqueue_style( $this->name . '_admin_style' );
             }
@@ -243,14 +243,14 @@ if ( ! class_exists( 'Banner' ) ) {
 
         public function shortcode( $atts ) {
             global $post;
-            
+
             //Extract attributes and set default value if not set
             extract( shortcode_atts( array(
                 'id'         => '',
                 'controls'   => true,     //Display controls
                 'indicators' => true     //Display indicators
             ), $atts ) );
-            
+
             //Generate Query:
             $args = array(
                 'post_type'       => $this->name,
@@ -260,7 +260,7 @@ if ( ! class_exists( 'Banner' ) ) {
                 'order'           => 'ASC'
             );
             $query = new WP_Query( $args );
-            
+
             if ( $query->have_posts() ) : while ($query->have_posts()): $query->the_post();
 
                 $carousel_id = 'carousel_' . $post->ID;
@@ -289,12 +289,12 @@ if ( ! class_exists( 'Banner' ) ) {
 
                         $slides .= '</div>';
 
-                    endforeach; 
+                    endforeach;
 
                     $carousel_controls = '<a class="carousel-control left" href="#' . $carousel_id . '" data-slide="prev"><span class="arrow">&lsaquo;</span></a>
                                         <a class="carousel-control right" href="#' . $carousel_id . '" data-slide="next"><span class="arrow">&rsaquo;</span></a>';
 
-                    $output .= '<div id="' . $carousel_id . '" class="carousel slide">';
+                    $output = '<div id="' . $carousel_id . '" class="carousel slide">';
 
                     //Display indicators
                     if ( 'true' == $indicators && sizeof( $items ) > 1 )
@@ -306,19 +306,19 @@ if ( ! class_exists( 'Banner' ) ) {
                     //Display controls
                     if ( 'true' == $controls && sizeof( $items ) > 1 )
                         $output .= $carousel_controls;
-                    
+
                     $output .= '</div>';
 
                 endif;
-                        
+
             endwhile; else:
-                
-                $ouput .= '<p>' . __( 'Woops! No ' . $this->label . ' items available.' ) . '</p>'; 
+
+                $ouput .= '<p>' . __( 'Woops! No ' . $this->label . ' items available.' ) . '</p>';
 
             endif;
 
             wp_reset_query();
-            
+
             return $output;
         }
     }

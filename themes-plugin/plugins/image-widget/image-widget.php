@@ -23,7 +23,7 @@ if ( ! class_exists( 'Image_Widget' ) ) {
 
         function enqueue_assets() {
             wp_enqueue_media();
-            
+
             wp_enqueue_script(
                 'image-widget_script',
                 TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.js',
@@ -73,13 +73,13 @@ if ( ! class_exists( 'Image_Widget_Constructor' ) ) {
                 <?php endif; ?>
                 <?php
             endif;
-                 
+
             echo $after_widget;
         }
 
         function form( $instance ) {
-            $instance = wp_parse_args( (array) $instance, array( 'image_id' => '', 'link' => '', 'external_link' => '', 'link_target' => '' ) );
-            
+            $instance = wp_parse_args( (array) $instance, array( 'image_id' => '', 'title' => '', 'link' => '', 'external_link' => '', 'link_target' => '' ) );
+
             $image_id         = esc_attr( isset( $instance['image_id'] ) ? $instance['image_id'] : 0 );
             $title            = esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' );
             $link             = esc_attr( isset( $instance['link'] ) ? $instance['link'] : '' );
