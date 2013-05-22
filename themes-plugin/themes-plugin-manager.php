@@ -10,7 +10,7 @@ if ( ! class_exists( 'Themes_Plugin_Manager' ) ) {
 	class Themes_Plugin_Manager {
 
 	    public function __construct() {
-	    	
+
 	    	/* ACTIVATE THEMES PLUGIN */
 	    	add_action( 'after_setup_theme', array( $this, 'register' ), 1 );
 
@@ -29,7 +29,7 @@ if ( ! class_exists( 'Themes_Plugin_Manager' ) ) {
 	        global $notification;
 
 	        $plugins = get_option( 'themes_active_plugin' );
-	        
+
 	        if ( $plugins ) {
 	            foreach ( $plugins as $plugin ) {
 	                $plugin = str_replace( ' ', '_', ucwords( $plugin ) );
@@ -40,28 +40,28 @@ if ( ! class_exists( 'Themes_Plugin_Manager' ) ) {
 	    }
 
 	    public function admin_menu() {
-	       
-	        add_theme_page( 
+
+	        add_theme_page(
 	            'Themes Plugin Manager',
 	            'Plugins Manager',
 	            'edit_themes',
 	            'themes-plugin-manager',
 	            array( $this, 'plugin_manager' )
-	        );        
+	        );
 
 	        add_action( 'admin_init', array( $this, 'save' ) );
 	    }
 
 	    public function save() {
-	        if ( ! current_user_can('edit_themes') ) 
+	        if ( ! current_user_can('edit_themes') )
 	            return;
 
 	        global $notification;
 
 	        if ( isset( $_GET['page'] ) && $_GET['page'] == 'themes-plugin-manager' ) {
-	            
-	            if( isset( $_POST['action'] ) && $_POST['action'] == 'save' ) {            
-	                
+
+	            if( isset( $_POST['action'] ) && $_POST['action'] == 'save' ) {
+
 	                //Empty array if no plugins selected
 	                if ( isset( $_POST['plugins'] ) )
 	                    $new_options = $_POST['plugins'];
@@ -90,18 +90,18 @@ if ( ! class_exists( 'Themes_Plugin_Manager' ) ) {
 
 	        }
 	    }
-	    
+
 	    public function plugin_manager() {
 	        global $notification;
 	        ?>
-	    
+
 	        <div class="wrap columns-1">
 	            <?php screen_icon(); ?><h2>Themes Plugin Manager</h2>
 	        </div>
 	        <?php
 	        if ( isset ( $notification ) ) echo '<div id="message" class="updated fade"><p>' . $notification . '</p></div>';
 	        ?>
-	        
+
 	        <div class="maindesc">
 	            <p>In this area, you can manage themes plugin.</p>
 	        </div>
@@ -112,20 +112,20 @@ if ( ! class_exists( 'Themes_Plugin_Manager' ) ) {
 	                /**
 	                 * AUTO-ADD THEMES PLUGIN
 	                 */
-	                $theme_custom_folder = TP_DIRECTORY . '\plugins';
-	                
+	                $theme_custom_folder = TP_DIRECTORY . DIRECTORY_SEPARATOR . 'plugins';
+
 	                if ( $handle = opendir( $theme_custom_folder ) ) {
 	                    $plugins = array();
 	                    while ( false !== ( $entry = readdir( $handle ) ) ) {
-	                        
+
 	                        //Fetch plugins by reading folders
-	                        if ( $entry != "." && $entry != ".." && is_dir( $theme_custom_folder . '\\' . $entry ) ) {
+	                        if ( $entry != "." && $entry != ".." && is_dir( $theme_custom_folder . DIRECTORY_SEPARATOR . $entry ) ) {
 	                            //Find plugin init file
-	                            $file = $theme_custom_folder . '\\' . $entry . '\\' . $entry . '.php';
+	                            $file = $theme_custom_folder . DIRECTORY_SEPARATOR . $entry . DIRECTORY_SEPARATOR . $entry . '.php';
 	                            if ( file_exists( $file ) ) {
 
 	                                //Get meta-data from php file:
-	                                $metas = array( 
+	                                $metas = array(
 	                                    'name'           => 'Plugin Name',
 	                                    'plugin_uri'     => 'Plugin URI',
 	                                    'description'    => 'Description',
@@ -176,7 +176,7 @@ if ( ! class_exists( 'Themes_Plugin_Manager' ) ) {
 	                                $active = true;
 	                            else
 	                                $active = false;
-	                            
+
 	                            echo '<tr>
 	                                    <th valign="top" class="check-column ' . ( $active ? 'active' : 'inactive' ) . '" scope="row"><input type="checkbox" name="plugins[]" value="' . $plugin['name'] . '" ' . ( $active ? 'checked="checked"' : '' ) . ' /></th>
 	                                     <td valign="top" class="plugin-title ' . ( $active ? 'active' : 'inactive' ) . '"><strong>' . $plugin['name'] . '</strong></td>
@@ -187,13 +187,13 @@ if ( ! class_exists( 'Themes_Plugin_Manager' ) ) {
 	                        echo '</table>';
 	                    }
 	                }
-	                    
+
 	                ?>
 	                <input type="hidden" name="action" value="save" />
 	                <?php submit_button(); ?>
 	            </form>
 	        </div>
-	        
+
 	        <?php
 	    }
 
