@@ -16,7 +16,7 @@
  *               'type'              => '', //section, fieldset, text, submit
  *               'name'              => '',
  *               'label'             => '',
- *               'default_value'     => '', 
+ *               'default_value'     => '',
  *               'description'       => '',
  *               'attributes'              => '', //array of additional attributes Key = attribute name and Value = attribute value
  *               'options'           => ''  //for select field only, array of options with array( array( 'label' => 'My label', 'value' => 'value' ) )
@@ -37,9 +37,9 @@ if ( ! class_exists( 'Custom_Form' ) ) {
             'form_method'     => 'POST'
         );
         public $field   = array();
-        
+
         public function __construct ( $settings = array() ) {
-            
+
             if ( ! empty ( $settings ) ) {
                 //Open tags
                 $custom_form =  $this->start_main() .
@@ -111,6 +111,7 @@ if ( ! class_exists( 'Custom_Form' ) ) {
         }
 
         public function get_field( $field ) {
+            $output = '';
             if ( is_array( $field ) ) {
                 $type           = isset( $field['type'] ) ? $field['type'] : '';
                 $name           = isset( $field['name'] ) ? $field['name'] : '';
@@ -179,7 +180,7 @@ if ( ! class_exists( 'Custom_Form' ) ) {
                             $selected = ( $option['value'] == $default_value ) ? 'checked="checked"' : '';
                             $radio_group .=  '<input type="radio" value="' . $option['value'] . '" name="' . $name . '" id="' . $name . '" ' . $attr . ' ' . $selected . ' /> <span class="label">' . $option['label'] . '</span> ';
                         }
-                        $radio_group .= '</span>'; 
+                        $radio_group .= '</span>';
 
                         $output =   $this->before_field( $name ) .
                                     $this->get_label( $name, $label ) .
@@ -211,7 +212,7 @@ if ( ! class_exists( 'Custom_Form' ) ) {
 
                         $output =   $this->before_field( $name ) .
                                     $this->get_label( $name, $label ) .
-                                    '<select name="' . $name . '" id="' . $name . '" ' . $attr . ' >' . 
+                                    '<select name="' . $name . '" id="' . $name . '" ' . $attr . ' >' .
                                         $default_value .
                                     '</select>' .
                                     $this->get_description( $description ) .

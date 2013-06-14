@@ -1,5 +1,5 @@
 <?php
-/* 
+/*
 Plugin Name: Testimonial
 Version: 0.1
 Description: Add customer feedback including comment, date, company name and website.
@@ -14,7 +14,7 @@ if ( ! class_exists( 'Testimonial' ) ) {
         private $name_plurial, $label, $label_plurial;
 
         public function __construct() {
-            
+
             /* INITIALIZE VARIABLES */
             $this->name_plurial  = $this->name . 's';
             $this->label         = ucwords( preg_replace( '/[_.-]+/', ' ', $this->name ) );
@@ -38,7 +38,7 @@ if ( ! class_exists( 'Testimonial' ) ) {
                 Filter should always be "manage_edit-{$post-type}_columns"
                     - add_filter( "manage_edit-testimonials_columns", "testimonials_edit_columns" );
                 Same thing for Action:
-                    - add_action( "manage_{$post-type}_posts_custom_column", "testimonials_custom_columns" ); 
+                    - add_action( "manage_{$post-type}_posts_custom_column", "testimonials_custom_columns" );
 
                 Details & Usage:
                     - Filter: http://codex.wordpress.org/Plugin_API/Filter_Reference/manage_edit-post_type_columns
@@ -49,7 +49,7 @@ if ( ! class_exists( 'Testimonial' ) ) {
             add_filter( 'manage_edit-' . $this->name . '_columns', array( $this, 'edit_columns' ) );
 
             /* ASSOCIATE DATAS TO FIELDS */
-            add_action( 'manage_' . $this->name_plurial . '_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 ); 
+            add_action( 'manage_' . $this->name_plurial . '_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 );
 
 
             /* GENERATE SHORT CODE */
@@ -90,8 +90,8 @@ if ( ! class_exists( 'Testimonial' ) ) {
                 'hierarchical'          => false,
                 'exclude_from_search'   => true,
                 'supports'              => array( 'title' )
-            );  
-        
+            );
+
             register_post_type( $this->name , $args );
         }
 
@@ -99,7 +99,7 @@ if ( ! class_exists( 'Testimonial' ) ) {
             $screen = get_current_screen();
             if ( $this->name == $screen->post_type )
                 $title = 'Enter customer name here';
-            
+
             return $title;
         }
 
@@ -110,7 +110,7 @@ if ( ! class_exists( 'Testimonial' ) ) {
         public function meta( $post ) {
             global $post;
             $post_id = $post->ID;
-            
+
             //Get datas from DB:
             /*
                 Extract function: set array key as variable name and associate values
@@ -118,7 +118,7 @@ if ( ! class_exists( 'Testimonial' ) ) {
                     $datas        = get_post_meta($post_id, $this->name, true);
                     $date         = $datas['date'];
 
-                is equivalent to 
+                is equivalent to
                     extract( get_post_meta($post_id, $this->name, true) );
             */
             $metas = get_post_meta( $post_id, $this->name, true );
@@ -151,15 +151,15 @@ if ( ! class_exists( 'Testimonial' ) ) {
                 return;
 
               //Check permission:
-            if ( ! current_user_can( 'edit_posts' ) ) 
+            if ( ! current_user_can( 'edit_posts' ) )
                 return;
-            
+
             //Date stored in variable using "if" condition (short method)
             $date       = ( isset( $_REQUEST['date'] ) ) ? $_POST['date'] : '';
             $comment    = ( isset( $_REQUEST['comment'] ) ) ? $_REQUEST['comment'] : '';
             $company    = ( isset( $_REQUEST['company'] ) ) ? $_REQUEST['company'] : '';
             $website    = ( isset( $_REQUEST['website'] ) ) ? $_REQUEST['website'] : '';
-            
+
 
             //Datas stored as an array:
             $metas = array(
@@ -186,7 +186,7 @@ if ( ! class_exists( 'Testimonial' ) ) {
         //Associate datas to fields:
         public function custom_columns( $col, $post_id ) {
             $metas = extract( get_post_meta( $post_id, $this->name, true ) );
-            
+
             switch ( $col ) {
                 case 'title':
                     the_title();
@@ -202,16 +202,16 @@ if ( ! class_exists( 'Testimonial' ) ) {
 
         public function shortcode( $atts ) {
             global $post;
-            
+
             //Extract attributes and set default value if not set
             extract( shortcode_atts( array(
                 'from'   => '0%', //0, 50%, 10
                 'to'     => '100%' //50%, 100%, 100
             ), $atts ) );
-            
+
             //Get number of testimonials available:
             $total_posts = wp_count_posts( $this->name );
-            
+
             //Generate Query:
             $args = array(
                 'post_type'         => $this->name,
@@ -224,14 +224,14 @@ if ( ! class_exists( 'Testimonial' ) ) {
             $query = new WP_Query( $args );
 
             $output = '<div class="' . $this->name_plurial . '">';
-                    
+
             if ( $query->have_posts() ) :
                 while ($query->have_posts()):
                     $query->the_post();
-            
+
                     //Get meta datas from DB:
-                    extract( get_post_meta( $post->ID, $this->name, true ) );    
-                    
+                    extract( get_post_meta( $post->ID, $this->name, true ) );
+
                     //Generate Output:
                     $title       = ( ! empty( $title ) )     ? '&mdash; <span class="name"> ' . get_the_title() . '</span>' : '';
                     $date        = ( ! empty( $date ) )      ? '<span class="date">on ' . $date . '</span>' : '';
@@ -240,23 +240,22 @@ if ( ! class_exists( 'Testimonial' ) ) {
 
                     $output .= '<div class="' . $this->name . '">
                                     <div class="comment">' . $comment . '</div>
-                                        ' . $comment . '
                                         ' . $date . '
                                         ' . $company . '
                                         ' . $website . '
                                 </div>';
-                        
+
                 endwhile;
             else:
-                
-                $ouput .= '<p>' . __( 'Woops! No ' . $this->label . ' availables.' ) . '</p>'; 
+
+                $ouput .= '<p>' . __( 'Woops! No ' . $this->label . ' availables.' ) . '</p>';
 
             endif;
-            
+
             $output .= '</div>';
-            
+
             wp_reset_query();
-            
+
             return $output;
         }
     }

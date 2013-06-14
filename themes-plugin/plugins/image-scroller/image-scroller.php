@@ -29,13 +29,13 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
             add_action( 'add_meta_boxes', array( $this, 'meta_box' ) );
 
             /* ON PAGE UPDATE/PUBLISH, SAVE CUSTOM DATA IN DATABASE */
-            add_action( 'save_post', array( $this, 'save' ) ); 
+            add_action( 'save_post', array( $this, 'save' ) );
 
             /* CUSTOMISE THE COLUMNS TO SHOW IN ADMIN AREA */
             //Define visible fields:
-            add_filter( 'manage_edit-' . $this->name . '_columns', array( $this, 'edit_columns' ) );  
+            add_filter( 'manage_edit-' . $this->name . '_columns', array( $this, 'edit_columns' ) );
             //Associate datas to fields:
-            add_action( 'manage_' . $this->name . '_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 ); 
+            add_action( 'manage_' . $this->name . '_posts_custom_column',  array( $this, 'custom_columns' ), 10, 2 );
 
             /* REGISTER SCRIPTS & STYLE */
             add_action( 'admin_init', array( $this, 'register_admin_scripts' ) );
@@ -63,14 +63,15 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
             $args = array(
                 'label'                 => __( $this->label_plurial ),
                 'labels'                => $labels,
-                'public'                => true,
+                'public'                => false,
+                'publicly_queryable'    => false,
                 'show_ui'               => true,
                 'capability_type'       => 'post',
                 'hierarchical'          => false,
                 'exclude_from_search'   => true,
                 'supports'              => array( 'title' )
-               );  
-        
+               );
+
             register_post_type( $this->name , $args );
         }
 
@@ -78,18 +79,18 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
             $screen = get_current_screen();
             if ( $this->name == $screen->post_type )
                 $title = 'Enter title here';
-            
+
             return $title;
         }
 
         public function meta_box() {
             add_meta_box( $this->name . '-items', $this->label_plurial . ' Items', array( $this, 'metas' ), $this->name, 'normal', 'low' );
-        }  
-    
+        }
+
         public function metas( $post ) {
             global $post;
             $post_id = $post->ID;
-            
+
             //Get datas from DB:
             $items = get_post_meta( $post_id, $this->name, true );
             ?>
@@ -139,13 +140,13 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
                 return $post_id;
 
             //Check permission:
-            if ( ! current_user_can( 'edit_posts' ) ) 
+            if ( ! current_user_can( 'edit_posts' ) )
                 return;
 
             //Security check, data comming from the right form:
             if ( ! isset( $_POST[ $this->name . '_nonce' ] ) || ! wp_verify_nonce( $_POST[ $this->name . '_nonce' ], plugin_basename( __FILE__ ) ) )
                 return;
-            
+
             //Date stored in variable using "if" condition (short method)
             $images_id  = ( isset( $_REQUEST['images_id'] ) ) ? $_REQUEST['images_id'] : '';
             $link_to    = ( isset( $_REQUEST['link_to'] ) ) ? $_REQUEST['link_to'] : '';
@@ -174,7 +175,7 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
 
         public function custom_columns( $col, $post_id ) {
             $items = get_post_meta( $post_id, $this->name, true );
-            
+
             switch ( $col ) {
                 case 'title':
                     the_title();
@@ -189,7 +190,7 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
             wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.js',  array('media-upload', 'thickbox', 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
             wp_register_style( $this->name . '_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/' . basename( dirname( __FILE__ ) ) . '/assets/admin.css' );
         }
-    
+
         public function enqueue_admin_scripts() {
             global $post_type;
             if ( $this->name == $post_type ) {
@@ -211,7 +212,7 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
 
         public function shortcode( $atts ) {
             global $post;
-            
+
             //Extract attributes and set default value if not set
             extract( shortcode_atts( array(
                 'id'            => '',
@@ -220,7 +221,7 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
 
             if ( ! $id )
                 return;
-            
+
             //Generate Query:
             $args = array(
                 'post_type'         => $this->name,
@@ -232,14 +233,14 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
             $query = new WP_Query( $args );
 
             $output = '';
-            
+
             while ($query->have_posts()):
                 $query->the_post();
 
                 $output .= '<div id="hscroll_' . $post->ID . '" class="hscroll slide">';
                 if ( $post->post_title ) $output .= '<h2>' . $post->post_title . '</h2>';
                 $output .= '    <div class="hscroll-inner">';
-        
+
                 //Get meta datas from DB:
                 $items = get_post_meta( $post->ID, $this->name, true );
 
@@ -254,10 +255,10 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
                         $output .= '<a href="' . $items['link_to'] . '" target="_blank">';
 
                     $output .= '<img src="' . $image[0] . '" border="0" />';
-                    
+
                     if ( $link_to )
                         $output .= '</a>';
-                    
+
                     $output .= '</div>';
 
                 endforeach; endif;
@@ -269,7 +270,7 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
             endwhile;
 
             wp_reset_query();
-            
+
             return $output;
         }
     }

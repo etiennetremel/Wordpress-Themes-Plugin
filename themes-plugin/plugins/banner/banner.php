@@ -64,7 +64,7 @@ if ( ! class_exists( 'Banner' ) ) {
             $args = array(
                 'label'                 => __( $this->label_plurial ),
                 'labels'                => $labels,
-                'public'                => true,
+                'public'                => false,
                 'publicly_queryable'    => false,
                 'show_ui'               => true,
                 'capability_type'       => 'post',

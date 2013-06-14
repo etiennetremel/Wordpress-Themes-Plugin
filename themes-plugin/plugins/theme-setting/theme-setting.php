@@ -118,7 +118,7 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
                         //If data in DB, overwrite default value of fields in the form:
                         if ( $settings ) {
                             foreach( $theme_options as &$field ) {
-                                if( isset( $settings[ $field['name'] ] ) )
+                                if( isset( $field['name'] ) && isset( $settings[ $field['name'] ] ) )
                                     $field['default_value'] = stripslashes( $settings[ $field['name'] ] );
                             }
                         }

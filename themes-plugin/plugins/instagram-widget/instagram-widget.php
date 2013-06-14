@@ -53,14 +53,14 @@ if ( ! class_exists( 'Instagram_Widget_Constructor' ) ) {
             $slide_images   = $instance['slide_images'];
             $limit_number   = $instance['limit_number'];
             $access_token   = $instance['access_token'];
-            
+
             if ( ( empty( $hashtag ) && empty( $username ) ) || ! $limit_number || !$access_token)
                 return;
 
 
             //Check if feed already in transient (wordpress cache system)
             if ( get_transient( 'instagram_feed' ) === false ) {
-                
+
                 if ( empty( $username ) ) {
                     $hashtag = ( strpos( $hashtag, '#' ) === false ) ? $hashtag : substr( $hashtag, 1 );
                     $instagram_url = 'https://api.instagram.com/v1/tags/' . $hashtag . '/media/recent?access_token=' . $access_token;
@@ -71,11 +71,16 @@ if ( ! class_exists( 'Instagram_Widget_Constructor' ) ) {
                         $user_id = $user->data[0]->id;
                     else
                         return;
-                    
+
                     $instagram_url = 'https://api.instagram.com/v1/users/' . $user_id . '/media/recent?access_token=' . $access_token;
                 }
 
                 $instagram_feed = json_decode( file_get_contents( $instagram_url ) );
+
+                //Check if any error:
+                if ( $instagram_feed->meta->code == 400 )
+                    return;
+
                 foreach ( $instagram_feed->data as $image ) {
                     $feed[] = array(
                         'id'              => $image->id,
@@ -119,7 +124,7 @@ if ( ! class_exists( 'Instagram_Widget_Constructor' ) ) {
             <?php else: ?>
                 <p>No images found for <?php echo empty( $username ) ? '#' . $hashtag : 'username ' . $username; ?></p>
             <?php endif;
-                 
+
             echo $after_widget;
         }
 
@@ -166,7 +171,7 @@ if ( ! class_exists( 'Instagram_Widget_Constructor' ) ) {
 
         function form( $instance ) {
             $instance = wp_parse_args( (array) $instance, array( 'username' => '', 'hashtag' => '', 'access_token' => '', 'limit_number' => '', 'slide_images' => '' ) );
-            
+
             $title          = esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' );
             $username       = esc_attr( isset( $instance['username'] ) ? $instance['username'] : '' );
             $hashtag        = esc_attr( isset( $instance['hashtag'] ) ? $instance['hashtag'] : '' );
@@ -202,7 +207,7 @@ if ( ! class_exists( 'Instagram_Widget_Constructor' ) ) {
 
         function update( $new_instance, $old_instance ) {
             $instance = $old_instance;
-            
+
             delete_transient( 'instagram_feed' );
 
             $instance['username']         = strip_tags( $new_instance['username'] );
