@@ -23,8 +23,8 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
     class Twitter_Widget_Constructor extends WP_Widget {
         function Twitter_Widget_Constructor() {
             $widget_ops = array(
-                'classname'        => 'twitter-widget',
-                'description'      => __( 'Add Twitter feed' )
+                'classname'     => 'twitter-widget',
+                'description'   => __( 'Add Twitter feed' )
             );
 
             parent::__construct( 'twitter-widget', __( 'Twitter Widget' ), $widget_ops );
@@ -47,33 +47,54 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
         function widget( $args, $instance ) {
             extract( $args );
 
-            $title                = $instance['title'];
-            $tweeter_username     = $instance['tweeter_username'];
-            $slide_tweets         = $instance['slide_tweets'];
-            $limit_number         = $instance['limit_number'];
+            $title                  = $instance['title'];
+            $consumer_key           = $instance['consumer_key'];
+            $consumer_secret        = $instance['consumer_secret'];
+            $consumer_access_token  = $instance['consumer_access_token'];
+            $consumer_token_secret  = $instance['consumer_token_secret'];
+            $tweeter_username       = $instance['tweeter_username'];
+            $slide_tweets           = $instance['slide_tweets'];
+            $limit_number           = $instance['limit_number'];
 
-            if ( empty( $tweeter_username ) || ! $limit_number)
+            if ( empty( $tweeter_username )
+                || ! $limit_number
+                || empty( $consumer_key )
+                || empty( $consumer_secret )
+                || empty( $consumer_access_token )
+                || empty( $consumer_token_secret )
+            )
                 return;
 
 
             //Check if feed already in transient (wordpress cache system)
-            if ( get_transient( 'twitter_feed' ) === false ) {
+            $tweets = get_transient( 'twitter_feed' );
 
-                $twitter_url = 'http://api.twitter.com/1/statuses/user_timeline.json?screen_name=' . $tweeter_username;
-                $twitter_tweets = json_decode( file_get_contents( $twitter_url ) );
-                foreach ( $twitter_tweets as $tweet ) {
-                    $tweets[] = array(
-                        'id'              => $tweet->id,
-                        'created_at'      => $tweet->created_at,
-                        'text'            => $tweet->text
-                    );
+            if ( $tweets === false ) {
+
+
+                $json = $this->curl_request( array(
+                    'consumer_key'          => $consumer_key,
+                    'consumer_secret'       => $consumer_secret,
+                    'consumer_access_token' => $consumer_access_token,
+                    'consumer_token_secret' => $consumer_token_secret,
+                    'query' => array(
+                        'screen_name'   => $tweeter_username
+                    )
+                ) );
+
+                $twitter_tweets = json_decode( $json );
+
+                if ( is_array( $twitter_tweets ) ) {
+                    foreach ( $twitter_tweets as $tweet ) {
+                        $tweets[] = array(
+                            'id'            => $tweet->id,
+                            'created_at'    => $tweet->created_at,
+                            'text'          => $tweet->text
+                        );
+                    }
+
+                    set_transient( 'twitter_feed', $tweets, 60*15 ); //Store the feed for 15 minutes
                 }
-
-                set_transient( 'twitter_feed', $tweets, 60*15 ); //Store the feed for 15 minutes
-
-            } else {
-                //Get feed from database instead of doing a request and reach the limitation
-                $tweets = get_transient( 'twitter_feed' );
             }
 
             echo $before_widget;
@@ -90,7 +111,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
                     <ul class="feed">
                         <?php for ( $i = 0; $i < $limit_number; $i++ ) : ?>
                             <?php if ( $tweets[ $i ] ): $tweet = $tweets[ $i ]; ?>
-                            <li><span class="message"><?php echo $this->generateTweeterMetas( $tweet['text'] ); ?></span> <span class="date"><?php echo $this->timeAgo( $tweet['created_at'] ); ?></span></li>
+                            <li><span class="message"><?php echo $this->generate_tweeter_metas( $tweet['text'] ); ?></span> <span class="date"><?php echo $this->time_ago( $tweet['created_at'] ); ?></span></li>
                             <?php endif; ?>
                         <?php endfor; ?>
                     </ul>
@@ -104,7 +125,90 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
             echo $after_widget;
         }
 
-        private function timeAgo( $time ) {
+        private function curl_request( $args = array() ) {
+
+            // Default values
+            $default_args = array(
+                'consumer_key'          => '',
+                'consumer_secret'       => '',
+                'consumer_access_token' => '',
+                'consumer_token_secret' => '',
+                'request_URI'           => 'https://api.twitter.com/1.1/statuses/user_timeline.json',
+                'query'                 => array(
+                    'screen_name'   => 'upweyvalve',
+                    'count'         => 10
+                )
+            );
+            $user_datas = array_merge( $default_args, $args );
+
+            // Check params
+            if ( empty( $user_datas['consumer_key'] )
+                || empty( $user_datas['consumer_secret'] )
+                || empty( $user_datas['consumer_access_token'] )
+                || empty( $user_datas['consumer_token_secret'] )
+            )
+                return false;
+
+            // Hash
+            $oauth_hash = array(
+                'oauth_consumer_key'        => $user_datas['consumer_key'],
+                'oauth_nonce'               => time(),
+                'oauth_signature_method'    => 'HMAC-SHA1',
+                'oauth_timestamp'           => time(),
+                'oauth_token'               => $user_datas['consumer_access_token'],
+                'oauth_version'             => '1.0',
+            );
+
+            // Include Query:
+            foreach ( $user_datas['query'] as $key => $value )
+                if ( ! array_key_exists( $key, $oauth_hash ) )
+                    $oauth_hash[ $key ] = $value;
+
+            // Sort alphabetical order
+            ksort( $oauth_hash );
+
+            // Build query
+            $oauth_hash = http_build_query( $oauth_hash );
+
+            $base = '';
+            $base .= 'GET';
+            $base .= '&';
+            $base .= rawurlencode( $user_datas['request_URI'] );
+            $base .= '&';
+            $base .= rawurlencode( $oauth_hash );
+
+            $key = '';
+            $key .= rawurlencode( $user_datas['consumer_secret'] );
+            $key .= '&';
+            $key .= rawurlencode( $user_datas['consumer_token_secret'] );
+
+            $signature = base64_encode( hash_hmac( 'sha1', $base, $key, true ) );
+            $signature = rawurlencode( $signature );
+
+            $oauth_header = '';
+            $oauth_header .= 'oauth_consumer_key="' . $user_datas['consumer_key'] . '", ';
+            $oauth_header .= 'oauth_nonce="' . time() . '", ';
+            $oauth_header .= 'oauth_signature="' . $signature . '", ';
+            $oauth_header .= 'oauth_signature_method="HMAC-SHA1", ';
+            $oauth_header .= 'oauth_timestamp="' . time() . '", ';
+            $oauth_header .= 'oauth_token="' . $user_datas['consumer_access_token'] . '", ';
+            $oauth_header .= 'oauth_version="1.0", ';
+            $curl_header = array("Authorization: Oauth {$oauth_header}", 'Expect:');
+
+            // Curl
+            $curl = curl_init();
+            curl_setopt( $curl, CURLOPT_HTTPHEADER, $curl_header );
+            curl_setopt( $curl, CURLOPT_HEADER, false );
+            curl_setopt( $curl, CURLOPT_URL, $user_datas['request_URI'] . '?' . http_build_query( $user_datas['query'] ) );
+            curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+            curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
+            $json = curl_exec( $curl );
+            curl_close( $curl );
+
+            return $json;
+        }
+
+        private function time_ago( $time ) {
             $right_now = time();
             $then = strtotime( $time );
 
@@ -146,7 +250,7 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
                 return "over a year ago";
         }
 
-        private function generateTweeterMetas( $text ) {
+        private function generate_tweeter_metas( $text ) {
             //Links
             $links_pattern = '/(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:;,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:;,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:;,.]*\)|[A-Z0-9+&@#\/%=~_|$])/ix';
 
@@ -167,16 +271,29 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
         }
 
         function form( $instance ) {
-            $instance = wp_parse_args( (array) $instance, array( 'tweeter_username' => '', 'slide_tweets' => '', 'limit_number' => '' ) );
+            $instance = wp_parse_args( (array) $instance, array( 'title' => '', 'consumer_key' => '', 'consumer_secret' => '', 'consumer_access_token' => '', 'consumer_token_secret' => '', 'tweeter_username' => '', 'slide_tweets' => '', 'limit_number' => '10' ) );
 
-            $title                 = esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' );
-            $tweeter_username      = esc_attr( isset( $instance['tweeter_username'] ) ? $instance['tweeter_username'] : '' );
-            $slide_tweets          = esc_attr( isset( $instance['slide_tweets'] ) ? $instance['slide_tweets'] : '' );
-            $limit_number          = esc_attr( isset( $instance['limit_number'] ) ? $instance['limit_number'] : '5' );
+            extract( $instance );
             ?>
             <p>
                 <label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ) ?></label> <em>(not visible if empty)</em>
                 <input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo $title; ?>" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id( 'consumer_key' ); ?>"><?php _e( 'Consumer Key:' ) ?></label>
+                <input type="text" class="widefat" id="<?php echo $this->get_field_id( 'consumer_key' ); ?>" name="<?php echo $this->get_field_name( 'consumer_key' ); ?>" value="<?php echo $consumer_key; ?>" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id( 'consumer_secret' ); ?>"><?php _e( 'Consumer Secret:' ) ?></label>
+                <input type="text" class="widefat" id="<?php echo $this->get_field_id( 'consumer_secret' ); ?>" name="<?php echo $this->get_field_name( 'consumer_secret' ); ?>" value="<?php echo $consumer_secret; ?>" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id( 'consumer_access_token' ); ?>"><?php _e( 'Consumer Access Token:' ) ?></label>
+                <input type="text" class="widefat" id="<?php echo $this->get_field_id( 'consumer_access_token' ); ?>" name="<?php echo $this->get_field_name( 'consumer_access_token' ); ?>" value="<?php echo $consumer_access_token; ?>" />
+            </p>
+            <p>
+                <label for="<?php echo $this->get_field_id( 'consumer_token_secret' ); ?>"><?php _e( 'Consumer Secret Token:' ) ?></label>
+                <input type="text" class="widefat" id="<?php echo $this->get_field_id( 'consumer_token_secret' ); ?>" name="<?php echo $this->get_field_name( 'consumer_token_secret' ); ?>" value="<?php echo $consumer_token_secret; ?>" />
             </p>
             <p>
                 <label for="<?php echo $this->get_field_id( 'tweeter_username' ); ?>"><?php _e( 'Twitter Username:' ) ?></label>
@@ -188,22 +305,23 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
             </p>
             <p>
                 <label for="<?php echo $this->get_field_id( 'slide_tweets' ); ?>"><input type="checkbox" name="<?php echo $this->get_field_name( 'slide_tweets' ); ?>" <?php echo ( $slide_tweets ) ? 'checked="checked"': ''; ?> /><?php _e( 'Slide Tweets' ) ?></label> <em>(Slide tweets)</em>
+
             </p>
             <?php
         }
 
         function update( $new_instance, $old_instance ) {
             $instance = $old_instance;
-
-            delete_transient( 'twitter_feed' );
-
-            $instance['tweeter_username'] = strip_tags( $new_instance['tweeter_username'] );
-            $instance['title']            = strip_tags( $new_instance['title'] );
-            $instance['slide_tweets']     = strip_tags( $new_instance['slide_tweets'] );
-            $instance['limit_number']     = intval( $new_instance['limit_number'] );
+            $instance['tweeter_username']       = strip_tags( $new_instance['tweeter_username'] );
+            $instance['title']                  = strip_tags( $new_instance['title'] );
+            $instance['consumer_key']           = strip_tags( $new_instance['consumer_key'] );
+            $instance['consumer_secret']        = strip_tags( $new_instance['consumer_secret'] );
+            $instance['consumer_access_token']  = strip_tags( $new_instance['consumer_access_token'] );
+            $instance['consumer_token_secret']  = strip_tags( $new_instance['consumer_token_secret'] );
+            $instance['slide_tweets']           = strip_tags( $new_instance['slide_tweets'] );
+            $instance['limit_number']           = intval( $new_instance['limit_number'] );
             return $instance;
         }
     }
 }
-
 ?>
