@@ -320,6 +320,10 @@ if ( ! class_exists( 'Twitter_Widget_Constructor' ) ) {
             $instance['consumer_token_secret']  = strip_tags( $new_instance['consumer_token_secret'] );
             $instance['slide_tweets']           = strip_tags( $new_instance['slide_tweets'] );
             $instance['limit_number']           = intval( $new_instance['limit_number'] );
+
+            // Delete existing transient:
+            delete_transient( 'twitter_feed' );
+
             return $instance;
         }
     }

@@ -1,67 +1,26 @@
 .hscroll {
   position: relative;
+}
+.hscroll .hscroll-outer {
+  position: relative;
+  height: 175px;
   overflow: hidden;
   width: 100%;
-  margin-top: 20px;
 }
-.hscroll .hscroll-inner {
-  background: white;
+.hscroll .hscroll-outer .hscroll-inner {
+  width: 100%;
   position: relative;
-  height: 150px;
 }
-.hscroll .hscroll-inner .item {
-  display: inline-block;
-  width: 150px;
-  text-align: center;
+.hscroll .hscroll-outer .hscroll-inner .item {
+  display: block;
+  height: 175px;
+  float: left;
 }
-.hscroll .hscroll-inner .item img {
+.hscroll .hscroll-outer .hscroll-inner .item img {
+  vertical-align: top;
+  max-width: 100%;
+  height: auto;
+  width: 100%;
   line-height: 1;
   margin: 0 auto;
-}
-.hscroll .next,
-.hscroll .prev {
-  display: block;
-  position: absolute;
-  top: 0;
-  width: 100%;
-}
-.hscroll .next {
-  left: 100%;
-}
-.hscroll .next.left {
-  left: 0;
-}
-.hscroll .prev {
-  left: -100%;
-}
-.hscroll .prev.right {
-  left: 0;
-}
-.hscroll .control {
-  position: absolute;
-  top: 40%;
-  left: 15px;
-  width: 71px;
-  height: 70px;
-  margin-top: -20px;
-  font-size: 60px;
-  font-weight: 100;
-  line-height: 30px;
-  color: white;
-  text-align: center;
-  background: url(sprite.png);
-  opacity: 0.5;
-  filter: alpha(opacity=50);
-  text-decoration: none;
-}
-.hscroll .control:hover {
-  color: white;
-  text-decoration: none;
-  opacity: 0.9;
-  filter: alpha(opacity=90);
-}
-.hscroll .control.right {
-  left: auto;
-  right: 15px;
-  background-position: -71px 0;
 }

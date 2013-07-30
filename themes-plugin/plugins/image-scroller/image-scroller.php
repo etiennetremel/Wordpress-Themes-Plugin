@@ -238,21 +238,21 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
                 $query->the_post();
 
                 $output .= '<div id="hscroll_' . $post->ID . '" class="hscroll slide">';
-                if ( $post->post_title ) $output .= '<h2>' . $post->post_title . '</h2>';
-                $output .= '    <div class="hscroll-inner">';
+                $output .= '    <div class="hscroll-outer">';
+                $output .= '        <div class="hscroll-inner">';
 
                 //Get meta datas from DB:
                 $items = get_post_meta( $post->ID, $this->name, true );
 
                 if ( $items ): foreach ( $items as $key => $item ) :
 
-                    $image = wp_get_attachment_image_src( $item['image_id'], 'thumbnail' );
+                    $image = wp_get_attachment_image_src( $item['image_id'], 'full' );
                     $link_to = $item['link_to'];
 
                     $output .= '<div class="item">';
 
                     if ( $link_to )
-                        $output .= '<a href="' . $items['link_to'] . '" target="_blank">';
+                        $output .= '<a href="' . $link_to . '" target="_blank">';
 
                     $output .= '<img src="' . $image[0] . '" border="0" />';
 
@@ -263,9 +263,8 @@ if ( ! class_exists( 'Image_Scroller' ) ) {
 
                 endforeach; endif;
 
-            $output .= '    </div>
-                            <!--<a class="control left" href="#hscroll_' . $post->ID . '" data-slide="prev">&lsaquo;</a>
-                                <a class="control right" href="#hscroll_' . $post->ID . '" data-slide="next">&rsaquo;</a>-->
+            $output .= '        </div>
+                            </div>
                         </div>';
             endwhile;
 

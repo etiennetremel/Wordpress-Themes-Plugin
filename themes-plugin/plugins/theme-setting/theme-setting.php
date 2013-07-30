@@ -31,7 +31,7 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
 
         public function init() {
 
-            if ( ! current_user_can( 'edit_themes' ) )
+            if ( ! current_user_can( 'edit_theme_options' ) )
                 return;
 
             global $theme_options;
@@ -86,7 +86,7 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
         }
 
         public function add_menu() {
-            add_theme_page( 'Theme Settings', 'Theme Settings', 'edit_themes', $this->name, array( $this, 'theme_options' ) );
+            add_theme_page( 'Theme Settings', 'Theme Settings', 'edit_theme_options', $this->name, array( $this, 'theme_options' ) );
         }
 
         public function theme_options(){
