@@ -3,7 +3,7 @@
 /**
  * CUSTOM FORM CLASS
  * Author: Etienne Tremel
- * Date: 11/10/2012
+ * Updated: 15/08/2013
  * Description: Generate form with field
  * Usage:
  *   $settings = array(
@@ -13,13 +13,13 @@
  *       'form_method'       => 'POST',
  *       'fields'            => array(
  *           array(
- *               'type'              => '', //section, fieldset, text, submit
+ *               'type'              => '', // Section, fieldset, text, submit
  *               'name'              => '',
  *               'label'             => '',
  *               'default_value'     => '',
  *               'description'       => '',
- *               'attributes'              => '', //array of additional attributes Key = attribute name and Value = attribute value
- *               'options'           => ''  //for select field only, array of options with array( array( 'label' => 'My label', 'value' => 'value' ) )
+ *               'attributes'        => '', // Array of additional attributes Key = attribute name and Value = attribute value
+ *               'options'           => ''  // For select field only, array of options with array( array( 'label' => 'My label', 'value' => 'value' ) )
  *           )
  *       );
  *   );
@@ -111,7 +111,6 @@ if ( ! class_exists( 'Custom_Form' ) ) {
         }
 
         public function get_field( $field ) {
-            $output = '';
             if ( is_array( $field ) ) {
                 $type           = isset( $field['type'] ) ? $field['type'] : '';
                 $name           = isset( $field['name'] ) ? $field['name'] : '';
@@ -121,7 +120,7 @@ if ( ! class_exists( 'Custom_Form' ) ) {
                 $attributes     = isset( $field['attributes'] ) ? $field['attributes'] : array();
                 $options        = isset( $field['options'] ) ? $field['options'] : array();
 
-                $attr = "";
+                $attr = '';
                 if ( $attributes ) {
                     foreach ( $attributes as $attr_name => $value ) {
                         $attr .= $attr_name . '="' . $value . '" ';
@@ -163,6 +162,31 @@ if ( ! class_exists( 'Custom_Form' ) ) {
                         $output =   $this->before_field( $name ) .
                                     $this->get_label( $name, $label ) .
                                     '<input type="file" value="' . $default_value . '" name="' . $name . '" id="' . $name . '" ' . $attr . ' />' .
+                                    $this->get_description( $description ) .
+                                    $this->after_field();
+                        break;
+                    case "image":
+                        $attr = $image_src = '';
+                        if ( isset( $attributes['src'] ) ) {
+                            $image_src = $attributes['src'];
+                            unset( $attributes['src'] );
+                        }
+                        if ( $attributes ) {
+                            if ( isset( $attributes['src'] ) ) {
+                                $image_src = $attributes['src'];
+                                unset( $attributes['src'] );
+                            }
+                            foreach ( $attributes as $attr_name => $value ) {
+                                $attr .= $attr_name . '="' . $value . '" ';
+                            }
+                        }
+                        $output =   $this->before_field( $name ) .
+                                    $this->get_label( $name, $label ) .
+                                    '<span class="image-wrapper">' .
+                                    '   <span class="image"><img src="' . $image_src . '" /></span>' .
+                                    '   <input type="hidden" value="' . $default_value . '" name="' . $name . '" id="' . $name . '" ' . $attr . ' />' .
+                                    '   <button class="button select-image">Select Image</button>' .
+                                    '</span>' .
                                     $this->get_description( $description ) .
                                     $this->after_field();
                         break;
