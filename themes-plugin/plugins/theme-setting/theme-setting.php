@@ -44,7 +44,9 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
                 $not_included_fields = array(
                     'page',
                     'action',
-                    'submit'
+                    'submit',
+                    '_wp_http_referer',
+                    $this->name . '_nonce'
                 );
 
                 if( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'save' ) {
@@ -118,8 +120,13 @@ if ( ! class_exists( 'Theme_Setting' ) ) {
                         //If data in DB, overwrite default value of fields in the form:
                         if ( $settings ) {
                             foreach( $theme_options as &$field ) {
-                                if( isset( $field['name'] ) && isset( $settings[ $field['name'] ] ) )
+                                if( isset( $field['name'] ) && isset( $settings[ $field['name'] ] ) ) {
                                     $field['default_value'] = stripslashes( $settings[ $field['name'] ] );
+                                    if ( $field['type'] == 'image' ) {
+                                        $image_src = wp_get_attachment_image_src( $field['default_value'], 'thumbnail' );
+                                        $field['attributes']['src'] = $image_src[0];
+                                    }
+                                }
                             }
                         }
 

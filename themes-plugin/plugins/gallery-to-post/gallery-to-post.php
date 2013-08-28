@@ -38,13 +38,12 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
             $screens = array( 'post', 'page' );
             foreach ( $screens as $screen )
                 add_meta_box( $this->name . '-items', 'Gallery Items', array( $this, 'meta' ), $screen );
-        }  
-    
+        }
+
         public function meta( $post ) {
-            global $post;
 
             $post_id = $post->ID;
-            
+
             //Get datas from DB:
             $items = get_post_meta( $post_id, $this->name, true );
             ?>
@@ -99,9 +98,9 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
                 return;
 
               //Check permission:
-            if ( ! current_user_can( 'edit_posts' ) ) 
+            if ( ! current_user_can( 'edit_posts' ) )
                 return;
-            
+
             //Date stored in variable using "if" condition (short method)
             $images_id = ( isset( $_REQUEST['images_id'] ) ) ? $_REQUEST['images_id'] : '';
             $captions  = ( isset( $_REQUEST['captions'] ) ) ? $_REQUEST['captions'] : '';
@@ -121,12 +120,12 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
             //Insert data in DB:
             update_post_meta( $post_id, $this->name, $items );
         }
-    
+
         public function register_admin_scripts() {
             wp_register_script( $this->name . '_admin_script', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.js',  array('media-upload', 'thickbox', 'jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-draggable','jquery-ui-droppable'));
             wp_register_style( $this->name . '_admin_style', TP_PLUGIN_DIRECTORY_WWW . '/' . $this->name . '/assets/admin.css' );
         }
-    
+
         public function enqueue_admin_scripts() {
             global $post_type;
             if ( 'post' == $post_type || 'page' == $post_type ) {
@@ -148,7 +147,7 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
 
             //Get meta datas from DB:
             $items = get_post_meta( $post_id, $this->name, true );
-            
+
             $output = '<div id="gallery-to-post-' . $post_id . '" class="gallery-to-post">';
 
             if ( $items ): foreach ( $items as $key => $item ) :
@@ -168,7 +167,7 @@ if ( ! class_exists( 'Gallery_To_Post' ) ) {
             endforeach; endif;
 
             $output .= '</div>';
-            
+
             return $output;
         }
     }
