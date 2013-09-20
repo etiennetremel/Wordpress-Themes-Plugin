@@ -101,7 +101,7 @@ if ( ! class_exists( 'Instagram_Widget_Constructor' ) ) {
 
             echo $before_widget;
 
-            if ( sizeof( $feed ) > 0 ):
+            if ( $feed && sizeof( $feed ) > 0 ):
                 $limit_number = ( sizeof( $feed ) > $limit_number ) ? $limit_number : sizeof( $feed );
                 ?>
                 <?php if ( ! empty( $title ) ) : ?>
@@ -122,6 +122,9 @@ if ( ! class_exists( 'Instagram_Widget_Constructor' ) ) {
                 </div>
                 <?php endif; ?>
             <?php else: ?>
+                <?php if ( ! empty( $title ) ) : ?>
+                    <?php echo $before_title . $title . $after_title; ?>
+                <?php endif; ?>
                 <p>No images found for <?php echo empty( $username ) ? '#' . $hashtag : 'username ' . $username; ?></p>
             <?php endif;
 
